@@ -4,32 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LabelNerd Matrix 3D</title>
-    <!-- Tailwind CSS & Three.js Engines -->
-    <script src="https://tailwindcss.com"></script>
-    <script src="https://cloudflare.com"></script>
+
+    <!-- Hardcoded Background Fallback: Prevents the flash of white text if network is slow -->
     <style>
-        body {
+        html, body {
+            background-color: #020617 !important;
+            color: #f8fafc !important;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
             -webkit-tap-highlight-color: transparent;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #020617;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #1e293b;
-            border-radius: 999px;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #020617; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 999px; }
     </style>
+
+    <!-- Upgraded Production CDN Engine Links -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cloudflare.com"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased select-none overflow-x-hidden">
 
     <!-- Sticky Navigation Header -->
     <header class="sticky top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/60 px-4 py-3 z-50 flex items-center justify-between">
         <div class="flex items-center gap-2">
-            <span class="text-xl animate-pulse">⚛️</span>
+            <span class="text-xl">⚛️</span>
             <h1 class="text-base font-black tracking-wider bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">LABELNERD v2.0</h1>
         </div>
         <span class="text-[10px] font-mono tracking-widest px-2 py-0.5 rounded-md bg-cyan-950/40 text-cyan-400 border border-cyan-800/50 shadow-sm shadow-cyan-500/5">3D ENGINE ACTIVE</span>
@@ -71,7 +72,7 @@
             </div>
 
             <!-- Dashboard Comparison Metrics Deck -->
-            <div id="results-deck" class="hidden space-y-4 animate-fade-in">
+            <div id="results-deck" class="hidden space-y-4">
 
                 <!-- Filter Tool Belt -->
                 <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
@@ -100,103 +101,96 @@
         </div>
     </main>
 
-    <!-- Code Injection Patch Script -->
+    <!-- Script Processing Engine -->
     <script>
-        // Complex Database Profile System for Supplement Additives
         const fillerDictionary = {
             "microcrystalline cellulose": {
                 name: "Microcrystalline Cellulose",
                 class: "Bulking Agent / Binder",
                 safety: "Safe (Plant-Derived)",
-                color: 0x2dd4bf, // Teal
+                color: 0x2dd4bf,
                 function: "Refined wood pulp. Gives structural substance to a pill so it's physically large enough to hold. It acts as a biocompatible sponge that helps tablets break apart perfectly in the stomach."
             },
             "magnesium stearate": {
                 name: "Magnesium Stearate",
                 class: "Flow Agent / Lubricant",
                 safety: "Safe (Minimal Amounts)",
-                color: 0x38bdf8, // Sky Blue
+                color: 0x38bdf8,
                 function: "A magnesium salt mixed with fatty acids. It acts as a lubricant to prevent supplement ingredients from sticking to industrial machinery during encapsulation. Highly debated by purists, but technically safe in low doses."
             },
             "silicon dioxide": {
                 name: "Silicon Dioxide",
                 class: "Anti-Caking Agent",
                 safety: "Safe",
-                color: 0x60a5fa, // Blue
+                color: 0x60a5fa,
                 function: "Essentially pure, microscopic quartz sand. It absorbs ambient moisture and prevents powders from clumping up, ensuring absolute uniformity and accurate milligram dosing per capsule."
             },
             "stearic acid": {
                 name: "Stearic Acid",
                 class: "Binder / Lubricant",
                 safety: "Safe",
-                color: 0x818cf8, // Indigo
+                color: 0x818cf8,
                 function: "A naturally occurring saturated fatty acid. Used to harden tablets and lubricate production lines, ensuring smooth delivery without capsule breakdown during storage."
             },
             "hypromellose": {
                 name: "Hypromellose (HPMC)",
                 class: "Capsule Shell / Coating",
                 safety: "Vegan Alternative",
-                color: 0x34d399, // Emerald
+                color: 0x34d399,
                 function: "Hydroxypropyl methylcellulose. A plant-based alternative to animal gelatin used to create the clear outer shell of veggie capsules. Dissolves efficiently in standard gastric environments."
             },
             "gelatin": {
                 name: "Gelatin",
                 class: "Capsule Shell",
                 safety: "Animal-Derived",
-                color: 0xf43f5e, // Rose
+                color: 0xf43f5e,
                 function: "A protein derived from collagen (usually bovine or porcine). The classic structural material for softgels and hard capsules. Provides an excellent moisture barrier but is not vegetarian."
             },
             "titanium dioxide": {
                 name: "Titanium Dioxide",
                 class: "Color Opacifier",
                 safety: "Highly Scrutinized",
-                color: 0xf59e0b, // Amber
+                color: 0xf59e0b,
                 function: "A mineral used strictly to turn supplement pills bright white or opaque to protect light-sensitive ingredients. Increasingly banned or heavily restricted in food items globally (e.g., the EU) due to nanoparticle cellular accumulation concerns."
             },
             "croscarmellose sodium": {
                 name: "Croscarmellose Sodium",
                 class: "Superdisintegrant",
                 safety: "Safe",
-                color: 0xa855f7, // Purple
+                color: 0xa855f7,
                 function: "An internally cross-linked sodium carboxymethylcellulose. Its sole job is to swell up rapidly when exposed to stomach acid, violently rupturing the dense tablet matrix apart to optimize maximum nutrient absorption windows."
             }
         };
 
-        // 3D Scene Initialization Pipeline Global Cache
         let scene, camera, renderer, crystalGroup;
         let meshNodeRefs = [];
         let activeFilter = 'all';
 
         function init3DEngine() {
 const container = document.getElementById('three-canvas-container');
-const width = container.clientWidth;
-const height = container.clientHeight;
-// Scene & Viewport setup
+if(!container) return;
+const width = container.clientWidth || 300;
+const height = container.clientHeight || 224;
 scene = new THREE.Scene();
-scene.background = new THREE.Color(0x020617); // Matching dark environment slate-950
+scene.background = new THREE.Color(0x020617);
 camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
 camera.position.z = 12;
 renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(width, height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 container.appendChild(renderer.domElement);
-// Lighting Rig configuration
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 const pointLight = new THREE.PointLight(0x2dd4bf, 1, 50);
 pointLight.position.set(5, 5, 5);
 scene.add(pointLight);
-// Structural Assembly Core Center Group
 crystalGroup = new THREE.Group();
 scene.add(crystalGroup);
-// Build an abstract base matrix core layout wireframe
 const coreGeo = new THREE.IcosahedronGeometry(2, 1);
 const coreMat = new THREE.MeshBasicMaterial({ color: 0x1e293b, wireframe: true, transparent: true, opacity: 0.3 });
 const coreMesh = new THREE.Mesh(coreGeo, coreMat);
 crystalGroup.add(coreMesh);
-// Render loop trigger execution
 animate3DEngine();
-// Mobile Resizing Adjustments Hook
 window.addEventListener('resize', () => {
 const w = container.clientWidth;
 const h = container.clientHeight;
@@ -205,37 +199,32 @@ camera.updateProjectionMatrix();
 renderer.setSize(w, h);
 });
 }
-// Global Graphics Animation Ticks
 function animate3DEngine() {
 requestAnimationFrame(animate3DEngine);
-// Ambient systematic axis rotation modeling
+if(crystalGroup) {
 crystalGroup.rotation.y += 0.003;
 crystalGroup.rotation.x += 0.0015;
-// Dynamic orbit movements assigned per element node
+}
 meshNodeRefs.forEach(node => {
 node.mesh.position.y += Math.sin(Date.now() * 0.002 + node.seed) * 0.003;
 });
 renderer.render(scene, camera);
 }
-// Structural Generation Logic for 3D Graph Nodes
 function update3DGraph(activeMatches) {
-// Disassemble past nodes safely
 meshNodeRefs.forEach(node => crystalGroup.remove(node.mesh));
 meshNodeRefs = [];
 if (activeMatches.length === 0) return;
 const radius = 3.5;
 activeMatches.forEach((item, index) => {
-// Calculate uniform orbital coordinate placement arrays around core
 const phi = Math.acos(-1 + (2 * index) / activeMatches.length);
 const theta = Math.sqrt(activeMatches.length * Math.PI) * phi;
-// Alternate structural geometries to represent chemical classification profiles
 let geometry;
 if (item.safety.includes("Scrutinized")) {
-geometry = new THREE.OctahedronGeometry(0.5, 0); // Diamond hazard profile shape
+geometry = new THREE.OctahedronGeometry(0.5, 0);
 } else if (item.class.includes("Shell")) {
-geometry = new THREE.TorusGeometry(0.3, 0.1, 8, 24); // Donut structure profile
+geometry = new THREE.TorusGeometry(0.3, 0.1, 8, 24);
 } else {
-geometry = new THREE.SphereGeometry(0.4, 16, 16); // Safe uniform compound spheres
+geometry = new THREE.SphereGeometry(0.4, 16, 16);
 }
 const material = new THREE.MeshPhongMaterial({
 color: item.color,
@@ -249,14 +238,9 @@ mesh.position.x = radius * Math.cos(theta) * Math.sin(phi);
 mesh.position.y = radius * Math.sin(theta) * Math.sin(phi);
 mesh.position.z = radius * Math.cos(phi);
 crystalGroup.add(mesh);
-meshNodeRefs.push({
-mesh: mesh,
-name: item.name,
-seed: Math.random() * 100
-});
+meshNodeRefs.push({ mesh: mesh, name: item.name, seed: Math.random() * 100 });
 });
 }
-// Core Comparison Engine & Card Rendering Controls
 function runMatrixAnalysis() {
 const input = document.getElementById('ingredient-input').value.toLowerCase();
 const cardsList = document.getElementById('cards-list');
@@ -264,46 +248,43 @@ const resultsDeck = document.getElementById('results-deck');
 const hudStatus = document.getElementById('hud-status');
 cardsList.innerHTML = '';
 let matchedData = [];
-// Run structural substring matrix scan validations
 Object.keys(fillerDictionary).forEach(key => {
 if (input.includes(key)) {
 matchedData.push(fillerDictionary[key]);
 }
 });
-// Update 3D nodes real-time framework variables
 update3DGraph(matchedData);
-// Execute Filter Arrays
 const filteredData = matchedData.filter(item => {
 if (activeFilter === 'scrutinized') return item.safety.includes("Scrutinized");
 return true;
 });
-// Update HUD Metrics displays
 if (matchedData.length > 0) {
 hudStatus.textContent = PARSED SUCCESS // ${matchedData.length} NODES COMPILED;
-resultsDeck.classList.remove('hidden');
+resultsDeck.style.display = 'block';
 } else {
 hudStatus.textContent = SYSTEM EMPTY // 0 NODES MATCHED;
-resultsDeck.classList.remove('hidden');
-cardsList.innerHTML = <div class="text-center p-8 bg-slate-900/20 border border-dashed border-slate-800 rounded-xl"> <p class="text-xs text-slate-500">No known ingredient matrices compiled. Click 'Load Nerd Sample' to test components.</p> </div>;
+resultsDeck.style.display = 'block';
+cardsList.innerHTML = <div style="text-align: center; padding: 2rem; border: 1px dashed #334155; border-radius: 0.75rem;"> <p style="font-size: 0.75rem; color: #64748b;">No known ingredient matrices compiled. Click 'Load Nerd Sample' to test components.</p> </div>;
 return;
 }
-// Construct interface card layouts dynamically
 filteredData.forEach(item => {
 const card = document.createElement('div');
-card.className = "bg-slate-950 border border-slate-800/80 p-4 rounded-xl space-y-2 shadow-md transition-all active:border-cyan-500/50";
-let tagStyle = "text-emerald-400 bg-emerald-950/40 border-emerald-900/60";
-if (item.safety.includes("Scrutinized")) {
-tagStyle = "text-amber-400 bg-amber-950/40 border-amber-900/60";
-} else if (item.safety.includes("Animal")) {
-tagStyle = "text-rose-400 bg-rose-950/40 border-rose-900/60";
-}
-card.innerHTML = <div class="flex justify-between items-start gap-2"> <div> <h4 class="font-bold text-xs tracking-wide text-slate-100 flex items-center gap-2"> <span class="w-2 h-2 rounded-full" style="background-color: #${item.color.toString(16)}"></span> ${item.name} </h4> <p class="text-[10px] text-slate-400 font-mono mt-0.5">${item.class}</p> </div> <span class="text-[9px] font-mono px-2 py-0.5 rounded border ${tagStyle}"> ${item.safety} </span> </div> <p class="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-slate-950"> ${item.function} </p>;
-// Add event tracking to link card interaction selections straight to the 3D map views
+card.style.backgroundColor = '#020617';
+card.style.border = '1px solid #1e293b';
+card.style.padding = '1rem';
+card.style.borderRadius = '0.75rem';
+card.style.marginBottom = '0.75rem';
+let tagColor = "#34d399";
+let tagBg = "rgba(6, 78, 59, 0.4)";
+if (item.safety.includes("Scrutinized")) { tagColor = "#fbbf24"; tagBg = "rgba(120, 53, 4, 0.4)"; }
+else if (item.safety.includes("Animal")) { tagColor = "#f43f5e"; tagBg = "rgba(159, 18, 57, 0.4)"; }
+card.innerHTML = <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;"> <div> <h4 style="font-weight: 700; font-size: 0.75rem; color: #f8fafc; display: flex; align-items: center; gap: 0.5rem;"> <span style="width: 0.5rem; height: 0.5rem; border-radius: 999px; background-color: #${item.color.toString(16)}"></span> ${item.name} </h4> <p style="font-size: 10px; color: #94a3b8; font-family: monospace; margin: 2px 0 0 0;">${item.class}</p> </div> <span style="font-size: 9px; font-family: monospace; padding: 2px 6px; border-radius: 999px; border: 1px solid ${tagColor}; color: ${tagColor}; background-color: ${tagBg};"> ${item.safety} </span> </div> <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #0f172a;"> ${item.function} </p>;
 card.addEventListener('click', () => {
-document.getElementById('node-inspector').classList.remove('hidden');
-document.getElementById('inspector-name').textContent = item.name;
-document.getElementById('inspector-name').style.color = #${item.color.toString(16)};
-// Flash corresponding node visual sizes dynamically via temporary coordinate matrix multipliers
+const inspector = document.getElementById('node-inspector');
+inspector.style.display = 'flex';
+const nameSpan = document.getElementById('inspector-name');
+nameSpan.textContent = item.name;
+nameSpan.style.color = #${item.color.toString(16)};
 const targetNode = meshNodeRefs.find(n => n.name === item.name);
 if (targetNode) {
 targetNode.mesh.scale.set(1.8, 1.8, 1.8);
@@ -313,37 +294,18 @@ setTimeout(() => targetNode.mesh.scale.set(1, 1, 1), 600);
 cardsList.appendChild(card);
 });
 }
-// Global Functional Declarations & Initialization Core Listeners Hook setups
 document.getElementById('analyze-btn').addEventListener('click', runMatrixAnalysis);
 document.getElementById('demo-btn').addEventListener('click', () => {
 document.getElementById('ingredient-input').value = "Microcrystalline Cellulose, Gelatin, Titanium Dioxide, Magnesium Stearate, Silicon Dioxide, Croscarmellose Sodium";
 runMatrixAnalysis();
 });
-// Filter UI Action Bindings
-document.getElementById('filter-all').addEventListener('click', (e) => {
-activeFilter = 'all';
-updateFilterTabs(e.target);
-runMatrixAnalysis();
-});
-document.getElementById('filter-scrutinized').addEventListener('click', (e) => {
-activeFilter = 'scrutinized';
-updateFilterTabs(e.target);
-runMatrixAnalysis();
-});
+document.getElementById('filter-all').addEventListener('click', (e) => { activeFilter = 'all'; updateFilterTabs(e.target); runMatrixAnalysis(); });
+document.getElementById('filter-scrutinized').addEventListener('click', (e) => { activeFilter = 'scrutinized'; updateFilterTabs(e.target); runMatrixAnalysis(); });
 function updateFilterTabs(activeBtn) {
 ['filter-all', 'filter-scrutinized'].forEach(id => {
 const btn = document.getElementById(id);
-btn.className = "text-[9px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-800 transition-all";
+btn.style.color = '#64748b'; btn.style.borderColor = '#1e293b'; btn.style.backgroundColor = '#0f172a';
 });
-activeBtn.className = "text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800";
+activeBtn.style.color = '#22d3ee'; activeBtn.style.borderColor = '#0891b2'; activeBtn.style.backgroundColor = 'rgba(8, 145, 178, 0.2)';
 }
-// Initialize Engine Systems upon DOM loads
-window.addEventListener('DOMContentLoaded', () => {
-init3DEngine();
-});
-
-
-### Features Built:
-1. **Interactive 3D Web Graphics:** The top component renders a black spatial field displaying rotating crystal geometric structures representing the additives.
-2. **Dynamic HUD Engine Interface:** Elements scale up and flash instantly when the comparison card below is clicked, linking the analytical details to the visual map.
-3. **Interactive Comparison Filter Deck:** toggle the "Scrutinized" filter tab to instantly screen out safe items and isolate ingredients like *Titanium Dioxide* to examine their structural impact.
+window.addEventListener('DOMContentLoaded', init3DEngine);
