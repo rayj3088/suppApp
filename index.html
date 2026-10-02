@@ -3,63 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LabelNerd Matrix</title>
+    <title>LabelNerd Live Cloud Matrix</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: #020617; color: #f8fafc;
-            min-height: 100vh; font-family: sans-serif;
+            min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             padding: 16px; display: flex; flex-direction: column; gap: 16px;
         }
         header {
             border-bottom: 1px solid #1e293b; padding-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
         }
-        h1 { font-size: 1.25rem; font-weight: 800; color: #38bdf8; }
+        h1 { font-size: 1.15rem; font-weight: 900; color: #38bdf8; letter-spacing: 0.05em; }
+        .hud-status-text { font-size: 10px; font-family: monospace; color: #64748b; }
 
-        /* The Animation Orb replacing the heavy 3D engine */
         .matrix-orb-container {
-            height: 120px; display: flex; align-items: center; justify-content: center;
-            background: #0f172a; border-radius: 12px; border: 1px solid #1e293b;
+            height: 100px; display: flex; align-items: center; justify-content: center;
+            background: #0f172a; border-radius: 16px; border: 1px solid #1e293b;
         }
         .orb {
-            width: 40px; height: 40px; border-radius: 50%; background: #22d3ee;
-            box-shadow: 0 0 20px #06b6d4; transition: all 0.5s ease;
+            width: 36px; height: 36px; border-radius: 50%; background: #0ea5e9;
+            box-shadow: 0 0 15px #0ea5e9; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .orb.active {
-            transform: scale(1.5); background: #34d399; box-shadow: 0 0 30px #10b981;
-            animation: pulse 1s infinite alternate;
+            transform: scale(1.2); background: #38bdf8; box-shadow: 0 0 25px #38bdf8;
         }
-        @keyframes pulse { from { transform: scale(1.3); } to { transform: scale(1.6); } }
+        .orb.api-active {
+            transform: scale(1.3); background: #a855f7; box-shadow: 0 0 25px #a855f7;
+            animation: apiPulse 0.8s infinite alternate;
+        }
+        @keyframes apiPulse { from { opacity: 0.6; } to { opacity: 1; } }
 
         .control-deck {
-            background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 16px;
+            background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 16px;
             display: flex; flex-direction: column; gap: 12px;
         }
-        .deck-header { display: flex; justify-content: space-between; font-size: 12px; }
-        #demo-btn { color: #38bdf8; background: none; border: none; cursor: pointer; text-decoration: underline; }
+        .deck-header { display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
+        #demo-btn { color: #38bdf8; background: none; border: none; cursor: pointer; text-decoration: underline; font-weight: 600; }
         textarea {
-            width: 100%; height: 80px; background: #020617; border: 1px solid #1e293b;
-            border-radius: 8px; padding: 10px; color: white; resize: none; font-size: 13px;
+            width: 100%; height: 90px; background: #020617; border: 1px solid #1e293b;
+            border-radius: 12px; padding: 12px; color: white; resize: none; font-size: 13px; outline: none;
         }
+        textarea:focus { border-color: #0ea5e9; }
         #analyze-btn {
-            width: 100%; background: #38bdf8; border: none; border-radius: 8px;
-            padding: 12px; color: #020617; font-weight: 700; cursor: pointer;
+            width: 100%; background: linear-gradient(to right, #38bdf8, #0ea5e9); border: none; border-radius: 12px;
+            padding: 12px; color: #020617; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;
         }
+        #analyze-btn:active { transform: scale(0.98); }
+
         .card {
-            background: #0f172a; border: 1px solid #1e293b; border-radius: 12px;
-            padding: 14px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px;
+            background: #0b1329; border: 1px solid #1e293b; border-radius: 16px;
+            padding: 16px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px;
         }
-        .card-title { font-weight: 700; color: #f8fafc; font-size: 14px; }
-        .card-class { color: #38bdf8; font-size: 11px; font-family: monospace; }
-        .card-text { color: #94a3b8; font-size: 12px; line-height: 1.4; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .card-title { font-weight: 800; color: #f8fafc; font-size: 14px; }
+        .card-class { color: #a855f7; font-size: 11px; font-family: monospace; text-transform: uppercase; }
+        .card-text { color: #94a3b8; font-size: 12px; line-height: 1.4; padding-top: 6px; border-top: 1px solid #1e293b; }
+        .source-badge { font-size: 9px; font-family: monospace; padding: 2px 6px; border-radius: 99px; font-weight: bold; }
+        .local { color: #34d399; background: rgba(6, 78, 59, 0.3); border: 1px solid #34d399; }
+        .cloud { color: #a855f7; background: rgba(88, 28, 135, 0.3); border: 1px solid #a855f7; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🧪 LABELNERD v2.0</h1>
-        <span style="font-size: 11px; color: #94a3b8; font-family: monospace;">READY</span>
+        <h1>🧪 LABELNERD v4.0</h1>
+        <span id="hud-text" class="hud-status-text">CLOUD SYNC LIVE // STANDBY</span>
     </header>
 
     <div class="matrix-orb-container">
@@ -68,57 +78,112 @@
 
     <div class="control-deck">
         <div class="deck-header">
-            <span>Ingredient Input Payload</span>
-            <button id="demo-btn">⚡ Load Nerd Sample</button>
+            <span>Query Entry Blueprint</span>
+            <button id="demo-btn">⚡ Test Cloud API</button>
         </div>
-        <textarea id="ingredient-input" placeholder="Paste ingredients list here..."></textarea>
-        <button id="analyze-btn">🔬 Compute Analysis</button>
+        <textarea id="ingredient-input" placeholder="Type a brand name, vitamin, or filler to trigger a live NIH cloud lookup..."></textarea>
+        <button id="analyze-btn">🔬 Fetch & Compute Matrix</button>
     </div>
 
     <div id="cards-list"></div>
 
     <script>
-        const dictionary = {
-            "microcrystalline cellulose": { name: "Microcrystalline Cellulose", class: "Bulking Agent / Binder", text: "Refined wood pulp. Gives structural substance to a pill so it's physically large enough to hold. It acts as a biocompatible sponge that helps tablets break apart perfectly in the stomach." },
-            "magnesium stearate": { name: "Magnesium Stearate", class: "Flow Agent / Lubricant", text: "A magnesium salt mixed with fatty acids. It acts as a lubricant to prevent supplement ingredients from sticking to industrial machinery during encapsulation. Highly debated by purists, but technically safe in low doses." },
-            "silicon dioxide": { name: "Silicon Dioxide", class: "Anti-Caking Agent", text: "Essentially pure, microscopic quartz sand. It absorbs ambient moisture and prevents powders from clumping up, ensuring absolute uniformity and accurate milligram dosing per capsule." },
-            "titanium dioxide": { name: "Titanium Dioxide", class: "Color Opacifier (Scrutinized)", text: "A mineral used strictly to turn supplement pills bright white or opaque to protect light-sensitive ingredients. Increasingly banned or heavily restricted in food items globally due to nanoparticle cellular accumulation concerns." }
+        // Local baseline fallback catalog matrix
+        const localDictionary = {
+            "microcrystalline cellulose": { name: "Microcrystalline Cellulose", class: "Excipient Filler", source: "local", text: "Refined wood pulp mass. Safe compound used to bulken pill layouts so they can be handled." },
+            "magnesium stearate": { name: "Magnesium Stearate", class: "Flow Agent Lubricant", source: "local", text: "Vegetable oil oil-bound matrix. Prevents raw nutrients from sticking to tablet press components." }
         };
 
         document.getElementById('demo-btn').addEventListener('click', () => {
-            document.getElementById('ingredient-input').value = "Microcrystalline Cellulose, Titanium Dioxide, Magnesium Stearate, Silicon Dioxide";
+            document.getElementById('ingredient-input').value = "Nature Made Magnesium";
         });
 
-        document.getElementById('analyze-btn').addEventListener('click', () => {
-            const input = document.getElementById('ingredient-input').value.toLowerCase();
+        document.getElementById('analyze-btn').addEventListener('click', async () => {
+            const queryValue = document.getElementById('ingredient-input').value.trim();
             const list = document.getElementById('cards-list');
             const orb = document.getElementById('matrix-orb');
+            const hud = document.getElementById('hud-text');
 
-            list.innerHTML = '';
-            let found = false;
+            if (!queryValue) return;
 
-            Object.keys(dictionary).forEach(key => {
-                if (input.includes(key)) {
-                    found = true;
-                    const item = dictionary[key];
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = `
-                        <div class="card-title">✨ ${item.name}</div>
-                        <div class="card-class">${item.class}</div>
-                        <div class="card-text">${item.text}</div>
-                    `;
-                    list.appendChild(card);
+            list.innerHTML = '<div style="text-align:center;color:#64748b;font-size:12px;margin-top:16px;">Querying NIH Cloud Nodes...</div>';
+            orb.className = 'orb api-active';
+            hud.textContent = 'CONNECTING TO GOV SERVERS...';
+
+            let localMatchesFound = [];
+            const cleanQuery = queryValue.toLowerCase();
+
+            // Check local overrides first
+            Object.keys(localDictionary).forEach(key => {
+                if (cleanQuery.includes(key)) {
+                    localMatchesFound.push(localDictionary[key]);
                 }
             });
 
-            if (found) {
-                orb.classList.add('active');
-            } else {
-                orb.classList.remove('active');
-                list.innerHTML = '<div style="text-align:center;color:#64748b;font-size:12px;margin-top:12px;">No matches found.</div>';
+            try {
+                // 📡 Live Cloud Fetch Connection pointing straight to the official NIH REST Gateway
+                const apiResponse = await fetch(`https://nih.gov{encodeURIComponent(queryValue)}&size=3`);
+                const apiData = await apiResponse.json();
+
+                list.innerHTML = ''; // Wipe loading message
+                let cardsRendered = 0;
+
+                // Render local summaries if matched
+                localMatchesFound.forEach(item => {
+                    renderCard(list, item.name, item.class, item.text, "LOCAL REF");
+                    cardsRendered++;
+                });
+
+                // Parse cloud database array payload
+                if (apiData && apiData.hits && apiData.hits.hits) {
+                    apiData.hits.hits.forEach(hit => {
+                        const product = hit._source;
+                        if (product && product.fullName) {
+                            cardsRendered++;
+                            const brandName = product.brandName || "Unknown Brand";
+                            const servingInfo = product.servingSize || "N/A";
+                            const descriptionText = `Official cataloged supplement manufactured by ${brandName}. Serving Size: ${servingInfo}. Database Tracking ID: ${hit._id || 'N/A'}`;
+
+                            renderCard(list, product.fullName, "NIH Database Match", descriptionText, "NIH CLOUD");
+                        }
+                    });
+                }
+
+                if (cardsRendered > 0) {
+                    orb.className = 'orb active';
+                    hud.textContent = `SYNC COMPLETE // ${cardsRendered} OBJECTS RENDERED`;
+                } else {
+                    orb.className = 'orb';
+                    hud.textContent = 'SYNC FINISHED // 0 MATRIX HITS';
+                    list.innerHTML = '<div style="text-align:center;color:#64748b;font-size:12px;margin-top:16px;border:1px dashed #1e293b;padding:24px;border-radius:12px;">No specific cloud profiles mapped. Check string spellings.</div>';
+                }
+
+            } catch (networkError) {
+                // Fail-safe graceful error interceptor
+                orb.className = 'orb';
+                hud.textContent = 'NETWORK TIMEOUT // LOCAL OFFLINE';
+                list.innerHTML = '<div style="text-align:center;color:#ef4444;font-size:12px;margin-top:16px;">API connection error. Running app on baseline local memory grids.</div>';
             }
         });
+
+        // Reuseable helper card rendering tool
+        function renderCard(targetContainer, title, classification, bodyText, sourceLabel) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            const styleType = sourceLabel.includes("CLOUD") ? "cloud" : "local";
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">🔍 ${title}</div>
+                        <div class="card-class">${classification}</div>
+                    </div>
+                    <span class="source-badge ${styleType}">${sourceLabel}</span>
+                </div>
+                <div class="card-text">${bodyText}</div>
+            `;
+            targetContainer.appendChild(card);
+        }
     </script>
 </body>
 </html>
