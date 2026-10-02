@@ -1,299 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LABELNERD v3.0</title>
-  <style>
-    :root {
-      --neon-purple: #b026ff;
-      --neon-green: #39ff14;
-      --neon-red: #ff3333;
-      --neutral-blue: #3a86ff;
-      --bg-dark: #121212;
-      --card-bg: #1e1e1e;
-      --text-main: #f5f5f5;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LabelNerd Matrix 3D</title>
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      margin: 0;
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    <!-- Modular CSS Stylesheet -->
+    <link rel="stylesheet" href="./src/css/styles.css">
 
-    .header-container {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 2rem;
-    }
-
-    /* THE ORB */
-    #status-orb {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: var(--neutral-blue);
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      transition: background 0.3s ease;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); box-shadow: 0 0 10px var(--neon-purple); }
-      100% { transform: scale(1.2); box-shadow: 0 0 20px var(--neon-purple); }
-    }
-
-    textarea {
-      width: 100%;
-      max-width: 600px;
-      height: 150px;
-      background: var(--card-bg);
-      color: var(--text-main);
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 1rem;
-      font-size: 1rem;
-      margin-bottom: 1rem;
-      resize: vertical;
-    }
-
-    button {
-      background-color: var(--neutral-blue);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      font-weight: bold;
-      transition: opacity 0.2s;
-    }
-
-    button:hover {
-      opacity: 0.8;
-    }
-
-    #output-container {
-      width: 100%;
-      max-width: 600px;
-      margin-top: 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-left: 4px solid var(--neutral-blue);
-      padding: 1rem;
-      border-radius: 4px;
-    }
-
-    .card.success { border-left-color: var(--neon-green); }
-    .card.error { border-left-color: var(--neon-red); }
-  </style>
+    <!-- Tailwind v4 & Three.js CDN Engine Links -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased select-none overflow-x-hidden">
 
-  <div class="header-container">
-    <div id="status-orb"></div>
-    <h1>LABELNERD v3.0</h1>
-  </div>
+    <!-- Sticky Navigation Header -->
+    <header class="sticky top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/60 px-4 py-3 z-50 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="text-xl">⚛️</span>
+            <h1 class="text-base font-black tracking-wider bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">LABELNERD v2.0</h1>
+        </div>
+        <span class="text-[10px] font-mono tracking-widest px-2 py-0.5 rounded-md bg-cyan-950/40 text-cyan-400 border border-cyan-800/50 shadow-sm shadow-cyan-500/5">3D ENGINE ACTIVE</span>
+    </header>
 
-  <textarea id="ingredient-input" placeholder="Paste supplement label ingredients here... (e.g., magnesium stearate, silicon dioxide)"></textarea>
+    <!-- Main Container Layout tailored for Mobile Device Viewports -->
+    <main class="flex-1 max-w-md w-full mx-auto flex flex-col overflow-hidden">
 
-  <div>
-    <button onclick="handleProcessClick()">Analyze Label Matrix</button>
-    <button onclick="saveCurrentToFavorites()" style="background: #444; margin-left: 10px;">Save Favorites</button>
-  </div>
+        <!-- Interactive 3D Canvas Section -->
+        <div class="relative w-full h-56 bg-slate-950 border-b border-slate-800/80 overflow-hidden shadow-inner flex-shrink-0">
+            <div id="three-canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+            <!-- HUD overlay -->
+            <div class="absolute bottom-2 left-3 right-3 flex justify-between items-center pointer-events-none">
+                <span id="hud-status" class="text-[10px] font-mono text-slate-500 tracking-wider">SYSTEM IDLE // STANDBY</span>
+                <span id="hud-rotation" class="text-[9px] font-mono text-slate-600">ORBITING MATRIX</span>
+            </div>
+        </div>
 
-  <div id="output-container"></div>
+        <!-- Scrollable Dashboard Controls & Results Container -->
+        <div class="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-28 custom-scrollbar">
 
-  <script>
-    // ==========================================
-    // 1. ARCHITECTURE & PERSISTENCE STATE
-    // ==========================================
-    const BASELINE_DICTIONARY = {
-      "magnesium stearate": "Lubricant: Stops powders from sticking to factory machines.",
-      "silicon dioxide": "Anti-caking: Absorbs ambient humidity so powder won't clump."
-    };
+            <!-- Matrix Control Input Deck -->
+            <div class="space-y-2 bg-slate-900/40 p-4 rounded-2xl border border-slate-800/80 shadow-lg backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Ingredient Batch Payload</label>
+                    <button id="demo-btn" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold tracking-wide transition-colors flex items-center gap-1 cursor-pointer">
+                        <span>⚡</span> Save Favorites
+                    </button>
+                </div>
 
-    let latestIngredientMatrix = null;
-    let latestSupplementName = "Scanned Supplement " + new Date().toLocaleTimeString();
+                <textarea id="ingredient-input"
+                    class="w-full h-24 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 transition-all placeholder:text-slate-700 resize-none shadow-inner"
+                    placeholder="Paste inactive ingredient formulation label matrices..."></textarea>
 
-    function checkLocalDictionary(inputText) {
-      const matches = {};
-      const lowerText = inputText.toLowerCase();
-      for (const [ingredient, description] of Object.entries(BASELINE_DICTIONARY)) {
-        if (lowerText.includes(ingredient)) {
-          matches[ingredient] = description;
-        }
-      }
-      return matches;
-    }
+                <button id="analyze-btn"
+                    class="w-full bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:opacity-95 text-slate-950 font-black tracking-wider py-3 px-4 rounded-xl text-xs transition-all shadow-lg shadow-cyan-500/10 uppercase flex items-center justify-center gap-2 cursor-pointer">
+                    <span>🔬</span> Compute Matrix Graph
+                </button>
+            </div>
 
-    async function runBrowserNativeAI(inputText) {
-      // Mocking the experimental window.ai for demonstration
-      if(window.ai && window.ai.languageModel) {
-          const session = await window.ai.languageModel.create();
-          return await session.prompt(`Explain these supplement ingredients: ${inputText}`);
-      }
-      return "Browser AI not detected. (Mock response triggered)";
-    }
+            <!-- Dashboard Comparison Metrics Deck -->
+            <div id="results-deck" class="hidden space-y-4">
 
-    async function fetchFromServerProxyAPI(inputText) {
-      // Stub for future backend deployment
-      return new Promise(resolve => {
-        setTimeout(() => resolve("Server API fallback response triggered for unstructured text."), 1000);
-      });
-    }
+                <!-- Filter Tool Belt -->
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                    <h3 class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Comparison Matrix Output</h3>
+                    <div class="flex gap-1">
+                        <button id="filter-all" class="text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 cursor-pointer">ALL</button>
+                        <button id="filter-scrutinized" class="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-800 hover:text-amber-400 hover:border-amber-900 transition-all cursor-pointer">SCRUTINIZED</button>
+                    </div>
+                </div>
 
-    // ==========================================
-    // 2. FETCH & DECIPHER ENGINE SWITCHBOARD
-    // ==========================================
+                <!-- Active 3D Node Inspection Highlight Card -->
+                <div id="node-inspector" class="bg-gradient-to-r from-cyan-950/20 to-slate-900/40 border border-cyan-900/30 p-3 rounded-xl hidden flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
+                    <div class="text-[11px]">
+                        <span class="text-slate-400">Selected Node Focus:</span>
+                        <strong id="inspector-name" class="text-cyan-400 font-bold ml-1">None</strong>
+                    </div>
+                </div>
 
-async function searchGovernmentAPI(productName) {
-  try {
-    updateUIState("THINKING_ORB_ACTIVE");
+                <!-- Output Target Dynamic List -->
+                <div id="cards-list" class="space-y-3">
+                    <!-- Dynamic Matrix Cards Injected Here -->
+                </div>
+            </div>
+        </div>
+    </main>
 
-    // Step 1: Search the NIH database by product name keyword
-    const searchUrl = `https://api.ods.od.nih.gov/dsld/v9/browse-products/?method=by_keyword&q=${encodeURIComponent(productName)}`;
-    const searchResponse = await fetch(searchUrl);
-    const searchData = await searchResponse.json();
-
-    if (!searchData || searchData.length === 0) {
-      throw new Error("No supplements found matching that name.");
-    }
-
-    // Step 2: Grab the DSLD ID of the first/best match to get the actual label
-    // (Note: You may need to adjust the exact JSON parsing based on the API's array structure)
-    const firstMatchId = searchData[0].dsldId;
-
-    // Step 3: Fetch the full, official label data
-    const labelUrl = `https://api.ods.od.nih.gov/dsld/v9/label/${firstMatchId}`;
-    const labelResponse = await fetch(labelUrl);
-    const labelData = await labelResponse.json();
-
-    console.log("Official Government Label Data:", labelData);
-
-    // You would then pass the ingredients from labelData into your local dictionary logic
-    updateUIState("SUCCESS_ORB_ACTIVE");
-    return labelData;
-
-  } catch (error) {
-    console.error("Government API Error:", error);
-    updateUIState("ERROR_ORB_ACTIVE");
-    renderFallbackUI(error.message);
-  }
-}
-
-    async function processSupplementLabel(rawInputText) {
-      updateUIState("THINKING_ORB_ACTIVE");
-      const outputContainer = document.getElementById("output-container");
-      outputContainer.innerHTML = "";
-
-      let foundMatches = checkLocalDictionary(rawInputText);
-      latestIngredientMatrix = foundMatches;
-
-      try {
-        let decipheredText = "";
-
-        // Strategy 1: Browser-Native AI
-        if (window.ai && window.ai.languageModel) {
-          decipheredText = await runBrowserNativeAI(rawInputText);
-        }
-        // Strategy 2: Server API Fallback
-        else {
-          decipheredText = await fetchFromServerProxyAPI(rawInputText);
-        }
-
-        renderOutputCards(foundMatches, decipheredText);
-        updateUIState("SUCCESS_ORB_ACTIVE");
-      } catch (error) {
-        console.error(error);
-        renderFallbackUI("Connection or processing limit reached.");
-        updateUIState("ERROR_ORB_ACTIVE");
-      }
-    }
-
-    function handleProcessClick() {
-      const text = document.getElementById("ingredient-input").value;
-      if (!text.trim()) return;
-      processSupplementLabel(text);
-    }
-
-    // ==========================================
-    // 3. GRAPHICS & INTUITIVE DISCOVERY
-    // ==========================================
-    function updateUIState(stateType) {
-      const orb = document.getElementById("status-orb");
-      switch (stateType) {
-        case "THINKING_ORB_ACTIVE":
-          orb.style.animation = "pulse 0.5s infinite alternate";
-          orb.style.background = "var(--neon-purple)";
-          break;
-        case "SUCCESS_ORB_ACTIVE":
-          orb.style.animation = "none";
-          orb.style.background = "var(--neon-green)";
-          break;
-        case "ERROR_ORB_ACTIVE":
-          orb.style.animation = "none";
-          orb.style.background = "var(--neon-red)";
-          break;
-        default:
-          orb.style.animation = "none";
-          orb.style.background = "var(--neutral-blue)";
-      }
-    }
-
-    function renderOutputCards(matches, deciphered) {
-      const container = document.getElementById("output-container");
-
-      // Render Local Matches
-      if (Object.keys(matches).length > 0) {
-        let matchHTML = `<strong>Known Excipients Detected:</strong><ul>`;
-        for (const [ing, desc] of Object.entries(matches)) {
-          matchHTML += `<li><strong>${ing}:</strong> ${desc}</li>`;
-        }
-        matchHTML += `</ul>`;
-        container.innerHTML += `<div class="card success">${matchHTML}</div>`;
-      } else {
-        container.innerHTML += `<div class="card">No known excipients found in local dictionary.</div>`;
-      }
-
-      // Render AI/Server Deciphered Text
-      container.innerHTML += `<div class="card"><strong>Intelligence Layer Output:</strong><br><br>${deciphered}</div>`;
-    }
-
-    function renderFallbackUI(message) {
-      const container = document.getElementById("output-container");
-      container.innerHTML = `<div class="card error"><strong>Error:</strong> ${message}</div>`;
-    }
-
-    // ==========================================
-    // 4. DATA PERSISTENCE
-    // ==========================================
-    function saveToMomFavorites(supplementName, ingredientMatrix) {
-      if (!ingredientMatrix) return alert("Nothing to save yet! Analyze a label first.");
-
-      const currentLog = JSON.parse(localStorage.getItem("moms_matrix")) || [];
-      currentLog.push({
-        name: supplementName,
-        data: ingredientMatrix,
-        date: Date.now()
-      });
-      localStorage.setItem("moms_matrix", JSON.stringify(currentLog));
-      alert(`Saved "${supplementName}" to Mom's Favorites!`);
-    }
-
-    function saveCurrentToFavorites() {
-      saveToMomFavorites(latestSupplementName, latestIngredientMatrix);
-    }
-  </script>
+    <!-- Modular Main Application Entry Script -->
+    <script type="module" src="./src/js/app.js"></script>
 </body>
 </html>
