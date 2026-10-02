@@ -1,3 +1,27 @@
+import { fetchDensityFromIntelligence, calculateSpoonVolume } from './converter.js';
+
+let activeDensity = 0.86;
+
+async function updateConverterUI() {
+  const substance = document.getElementById('converter-substance')?.value || 'Creatine';
+  const weight = parseFloat(document.getElementById('converter-weight')?.value || 0);
+  if (weight <= 0) return;
+
+  const data = await fetchDensityFromIntelligence(substance);
+  activeDensity = data.density;
+
+  const res = calculateSpoonVolume(weight, activeDensity);
+  const spoonEl = document.getElementById('conv-spoon');
+  const mlEl = document.getElementById('conv-ml');
+  const tspEl = document.getElementById('conv-tsp');
+  const sourceEl = document.getElementById('conv-source');
+
+  if (spoonEl) spoonEl.textContent = res.spoonDescription;
+  if (mlEl) mlEl.textContent = `${res.volumeMl} mL`;
+  if (tspEl) tspEl.textContent = `${res.tsp} tsp (${res.tbsp} tbsp)`;
+  if (sourceEl) sourceEl.textContent = `${data.source} (${activeDensity.toFixed(2)} g/mL)`;
+}
+
 import { checkLocalDictionary } from './dictionary.js';
 import { updateUIState, renderOutputCards, renderFallbackUI, updateApiBadge } from './ui.js';
 import { getApiCount, runBrowserNativeAI, fetchFromServerProxyAPI } from './api.js';
