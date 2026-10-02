@@ -1,189 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LabelNerd Live Cloud Matrix</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background-color: #020617; color: #f8fafc;
-            min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            padding: 16px; display: flex; flex-direction: column; gap: 16px;
-        }
-        header {
-            border-bottom: 1px solid #1e293b; padding-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        h1 { font-size: 1.15rem; font-weight: 900; color: #38bdf8; letter-spacing: 0.05em; }
-        .hud-status-text { font-size: 10px; font-family: monospace; color: #64748b; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LABELNERD v3.0</title>
+  <style>
+    :root {
+      --neon-purple: #b026ff;
+      --neon-green: #39ff14;
+      --neon-red: #ff3333;
+      --neutral-blue: #3a86ff;
+      --bg-dark: #121212;
+      --card-bg: #1e1e1e;
+      --text-main: #f5f5f5;
+    }
 
-        .matrix-orb-container {
-            height: 100px; display: flex; align-items: center; justify-content: center;
-            background: #0f172a; border-radius: 16px; border: 1px solid #1e293b;
-        }
-        .orb {
-            width: 36px; height: 36px; border-radius: 50%; background: #0ea5e9;
-            box-shadow: 0 0 15px #0ea5e9; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .orb.active {
-            transform: scale(1.2); background: #38bdf8; box-shadow: 0 0 25px #38bdf8;
-        }
-        .orb.api-active {
-            transform: scale(1.3); background: #a855f7; box-shadow: 0 0 25px #a855f7;
-            animation: apiPulse 0.8s infinite alternate;
-        }
-        @keyframes apiPulse { from { opacity: 0.6; } to { opacity: 1; } }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-        .control-deck {
-            background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 16px;
-            display: flex; flex-direction: column; gap: 12px;
-        }
-        .deck-header { display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
-        #demo-btn { color: #38bdf8; background: none; border: none; cursor: pointer; text-decoration: underline; font-weight: 600; }
-        textarea {
-            width: 100%; height: 90px; background: #020617; border: 1px solid #1e293b;
-            border-radius: 12px; padding: 12px; color: white; resize: none; font-size: 13px; outline: none;
-        }
-        textarea:focus { border-color: #0ea5e9; }
-        #analyze-btn {
-            width: 100%; background: linear-gradient(to right, #38bdf8, #0ea5e9); border: none; border-radius: 12px;
-            padding: 12px; color: #020617; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;
-        }
-        #analyze-btn:active { transform: scale(0.98); }
+    .header-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 2rem;
+    }
 
-        .card {
-            background: #0b1329; border: 1px solid #1e293b; border-radius: 16px;
-            padding: 16px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px;
-        }
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .card-title { font-weight: 800; color: #f8fafc; font-size: 14px; }
-        .card-class { color: #a855f7; font-size: 11px; font-family: monospace; text-transform: uppercase; }
-        .card-text { color: #94a3b8; font-size: 12px; line-height: 1.4; padding-top: 6px; border-top: 1px solid #1e293b; }
-        .source-badge { font-size: 9px; font-family: monospace; padding: 2px 6px; border-radius: 99px; font-weight: bold; }
-        .local { color: #34d399; background: rgba(6, 78, 59, 0.3); border: 1px solid #34d399; }
-        .cloud { color: #a855f7; background: rgba(88, 28, 135, 0.3); border: 1px solid #a855f7; }
-    </style>
+    /* THE ORB */
+    #status-orb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--neutral-blue);
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      transition: background 0.3s ease;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); box-shadow: 0 0 10px var(--neon-purple); }
+      100% { transform: scale(1.2); box-shadow: 0 0 20px var(--neon-purple); }
+    }
+
+    textarea {
+      width: 100%;
+      max-width: 600px;
+      height: 150px;
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      resize: vertical;
+    }
+
+    button {
+      background-color: var(--neutral-blue);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.8;
+    }
+
+    #output-container {
+      width: 100%;
+      max-width: 600px;
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-left: 4px solid var(--neutral-blue);
+      padding: 1rem;
+      border-radius: 4px;
+    }
+
+    .card.success { border-left-color: var(--neon-green); }
+    .card.error { border-left-color: var(--neon-red); }
+  </style>
 </head>
 <body>
 
-    <header>
-        <h1>🧪 LABELNERD v4.0</h1>
-        <span id="hud-text" class="hud-status-text">CLOUD SYNC LIVE // STANDBY</span>
-    </header>
+  <div class="header-container">
+    <div id="status-orb"></div>
+    <h1>LABELNERD v3.0</h1>
+  </div>
 
-    <div class="matrix-orb-container">
-        <div id="matrix-orb" class="orb"></div>
-    </div>
+  <textarea id="ingredient-input" placeholder="Paste supplement label ingredients here... (e.g., magnesium stearate, silicon dioxide)"></textarea>
 
-    <div class="control-deck">
-        <div class="deck-header">
-            <span>Query Entry Blueprint</span>
-            <button id="demo-btn">⚡ Test Cloud API</button>
-        </div>
-        <textarea id="ingredient-input" placeholder="Type a brand name, vitamin, or filler to trigger a live NIH cloud lookup..."></textarea>
-        <button id="analyze-btn">🔬 Fetch & Compute Matrix</button>
-    </div>
+  <div>
+    <button onclick="handleProcessClick()">Analyze Label Matrix</button>
+    <button onclick="saveCurrentToFavorites()" style="background: #444; margin-left: 10px;">Save to Mom's Favorites</button>
+  </div>
 
-    <div id="cards-list"></div>
+  <div id="output-container"></div>
 
-    <script>
-        // Local baseline fallback catalog matrix
-        const localDictionary = {
-            "microcrystalline cellulose": { name: "Microcrystalline Cellulose", class: "Excipient Filler", source: "local", text: "Refined wood pulp mass. Safe compound used to bulken pill layouts so they can be handled." },
-            "magnesium stearate": { name: "Magnesium Stearate", class: "Flow Agent Lubricant", source: "local", text: "Vegetable oil oil-bound matrix. Prevents raw nutrients from sticking to tablet press components." }
-        };
+  <script>
+    // ==========================================
+    // 1. ARCHITECTURE & PERSISTENCE STATE
+    // ==========================================
+    const BASELINE_DICTIONARY = {
+      "magnesium stearate": "Lubricant: Stops powders from sticking to factory machines.",
+      "silicon dioxide": "Anti-caking: Absorbs ambient humidity so powder won't clump."
+    };
 
-        document.getElementById('demo-btn').addEventListener('click', () => {
-            document.getElementById('ingredient-input').value = "Nature Made Magnesium";
-        });
+    let latestIngredientMatrix = null;
+    let latestSupplementName = "Scanned Supplement " + new Date().toLocaleTimeString();
 
-        document.getElementById('analyze-btn').addEventListener('click', async () => {
-            const queryValue = document.getElementById('ingredient-input').value.trim();
-            const list = document.getElementById('cards-list');
-            const orb = document.getElementById('matrix-orb');
-            const hud = document.getElementById('hud-text');
-
-            if (!queryValue) return;
-
-            list.innerHTML = '<div style="text-align:center;color:#64748b;font-size:12px;margin-top:16px;">Querying NIH Cloud Nodes...</div>';
-            orb.className = 'orb api-active';
-            hud.textContent = 'CONNECTING TO GOV SERVERS...';
-
-            let localMatchesFound = [];
-            const cleanQuery = queryValue.toLowerCase();
-
-            // Check local overrides first
-            Object.keys(localDictionary).forEach(key => {
-                if (cleanQuery.includes(key)) {
-                    localMatchesFound.push(localDictionary[key]);
-                }
-            });
-
-            try {
-                // 📡 Live Cloud Fetch Connection pointing straight to the official NIH REST Gateway
-                const apiResponse = await fetch(`https://nih.gov{encodeURIComponent(queryValue)}&size=3`);
-                const apiData = await apiResponse.json();
-
-                list.innerHTML = ''; // Wipe loading message
-                let cardsRendered = 0;
-
-                // Render local summaries if matched
-                localMatchesFound.forEach(item => {
-                    renderCard(list, item.name, item.class, item.text, "LOCAL REF");
-                    cardsRendered++;
-                });
-
-                // Parse cloud database array payload
-                if (apiData && apiData.hits && apiData.hits.hits) {
-                    apiData.hits.hits.forEach(hit => {
-                        const product = hit._source;
-                        if (product && product.fullName) {
-                            cardsRendered++;
-                            const brandName = product.brandName || "Unknown Brand";
-                            const servingInfo = product.servingSize || "N/A";
-                            const descriptionText = `Official cataloged supplement manufactured by ${brandName}. Serving Size: ${servingInfo}. Database Tracking ID: ${hit._id || 'N/A'}`;
-
-                            renderCard(list, product.fullName, "NIH Database Match", descriptionText, "NIH CLOUD");
-                        }
-                    });
-                }
-
-                if (cardsRendered > 0) {
-                    orb.className = 'orb active';
-                    hud.textContent = `SYNC COMPLETE // ${cardsRendered} OBJECTS RENDERED`;
-                } else {
-                    orb.className = 'orb';
-                    hud.textContent = 'SYNC FINISHED // 0 MATRIX HITS';
-                    list.innerHTML = '<div style="text-align:center;color:#64748b;font-size:12px;margin-top:16px;border:1px dashed #1e293b;padding:24px;border-radius:12px;">No specific cloud profiles mapped. Check string spellings.</div>';
-                }
-
-            } catch (networkError) {
-                // Fail-safe graceful error interceptor
-                orb.className = 'orb';
-                hud.textContent = 'NETWORK TIMEOUT // LOCAL OFFLINE';
-                list.innerHTML = '<div style="text-align:center;color:#ef4444;font-size:12px;margin-top:16px;">API connection error. Running app on baseline local memory grids.</div>';
-            }
-        });
-
-        // Reuseable helper card rendering tool
-        function renderCard(targetContainer, title, classification, bodyText, sourceLabel) {
-            const card = document.createElement('div');
-            card.className = 'card';
-            const styleType = sourceLabel.includes("CLOUD") ? "cloud" : "local";
-
-            card.innerHTML = `
-                <div class="card-header">
-                    <div>
-                        <div class="card-title">🔍 ${title}</div>
-                        <div class="card-class">${classification}</div>
-                    </div>
-                    <span class="source-badge ${styleType}">${sourceLabel}</span>
-                </div>
-                <div class="card-text">${bodyText}</div>
-            `;
-            targetContainer.appendChild(card);
+    function checkLocalDictionary(inputText) {
+      const matches = {};
+      const lowerText = inputText.toLowerCase();
+      for (const [ingredient, description] of Object.entries(BASELINE_DICTIONARY)) {
+        if (lowerText.includes(ingredient)) {
+          matches[ingredient] = description;
         }
-    </script>
+      }
+      return matches;
+    }
+
+    async function runBrowserNativeAI(inputText) {
+      // Mocking the experimental window.ai for demonstration
+      if(window.ai && window.ai.languageModel) {
+          const session = await window.ai.languageModel.create();
+          return await session.prompt(`Explain these supplement ingredients: ${inputText}`);
+      }
+      return "Browser AI not detected. (Mock response triggered)";
+    }
+
+    async function fetchFromServerProxyAPI(inputText) {
+      // Stub for future backend deployment
+      return new Promise(resolve => {
+        setTimeout(() => resolve("Server API fallback response triggered for unstructured text."), 1000);
+      });
+    }
+
+    // ==========================================
+    // 2. FETCH & DECIPHER ENGINE SWITCHBOARD
+    // ==========================================
+    //
+    async function searchGovernmentAPI(productName) {
+      try {
+        updateUIState("THINKING_ORB_ACTIVE");
+
+        // Step 1: Search the NIH database by product name keyword
+        const searchUrl = `https://api.ods.od.nih.gov/dsld/v9/browse-products/?method=by_keyword&q=${encodeURIComponent(productName)}`;
+        const searchResponse = await fetch(searchUrl);
+        const searchData = await searchResponse.json();
+
+        if (!searchData || searchData.length === 0) {
+          throw new Error("No supplements found matching that name.");
+        }
+
+        // Step 2: Grab the DSLD ID of the first/best match to get the actual label
+        // (Note: You may need to adjust the exact JSON parsing based on the API's array structure)
+        const firstMatchId = searchData[0].dsldId;
+
+        // Step 3: Fetch the full, official label data
+        const labelUrl = `https://api.ods.od.nih.gov/dsld/v9/label/${firstMatchId}`;
+        const labelResponse = await fetch(labelUrl);
+        const labelData = await labelResponse.json();
+
+        console.log("Official Government Label Data:", labelData);
+
+        // You would then pass the ingredients from labelData into your local dictionary logic
+        updateUIState("SUCCESS_ORB_ACTIVE");
+        return labelData;
+
+      } catch (error) {
+        console.error("Government API Error:", error);
+        updateUIState("ERROR_ORB_ACTIVE");
+        renderFallbackUI(error.message);
+      }
+    }
+
+    async function processSupplementLabel(rawInputText) {
+      updateUIState("THINKING_ORB_ACTIVE");
+      const outputContainer = document.getElementById("output-container");
+      outputContainer.innerHTML = "";
+
+      let foundMatches = checkLocalDictionary(rawInputText);
+      latestIngredientMatrix = foundMatches;
+
+      try {
+        let decipheredText = "";
+
+        // Strategy 1: Browser-Native AI
+        if (window.ai && window.ai.languageModel) {
+          decipheredText = await runBrowserNativeAI(rawInputText);
+        }
+        // Strategy 2: Server API Fallback
+        else {
+          decipheredText = await fetchFromServerProxyAPI(rawInputText);
+        }
+
+        renderOutputCards(foundMatches, decipheredText);
+        updateUIState("SUCCESS_ORB_ACTIVE");
+      } catch (error) {
+        console.error(error);
+        renderFallbackUI("Connection or processing limit reached.");
+        updateUIState("ERROR_ORB_ACTIVE");
+      }
+    }
+
+    function handleProcessClick() {
+      const text = document.getElementById("ingredient-input").value;
+      if (!text.trim()) return;
+      processSupplementLabel(text);
+    }
+
+    // ==========================================
+    // 3. GRAPHICS & INTUITIVE DISCOVERY
+    // ==========================================
+    function updateUIState(stateType) {
+      const orb = document.getElementById("status-orb");
+      switch (stateType) {
+        case "THINKING_ORB_ACTIVE":
+          orb.style.animation = "pulse 0.5s infinite alternate";
+          orb.style.background = "var(--neon-purple)";
+          break;
+        case "SUCCESS_ORB_ACTIVE":
+          orb.style.animation = "none";
+          orb.style.background = "var(--neon-green)";
+          break;
+        case "ERROR_ORB_ACTIVE":
+          orb.style.animation = "none";
+          orb.style.background = "var(--neon-red)";
+          break;
+        default:
+          orb.style.animation = "none";
+          orb.style.background = "var(--neutral-blue)";
+      }
+    }
+
+    function renderOutputCards(matches, deciphered) {
+      const container = document.getElementById("output-container");
+
+      // Render Local Matches
+      if (Object.keys(matches).length > 0) {
+        let matchHTML = `<strong>Known Excipients Detected:</strong><ul>`;
+        for (const [ing, desc] of Object.entries(matches)) {
+          matchHTML += `<li><strong>${ing}:</strong> ${desc}</li>`;
+        }
+        matchHTML += `</ul>`;
+        container.innerHTML += `<div class="card success">${matchHTML}</div>`;
+      } else {
+        container.innerHTML += `<div class="card">No known excipients found in local dictionary.</div>`;
+      }
+
+      // Render AI/Server Deciphered Text
+      container.innerHTML += `<div class="card"><strong>Intelligence Layer Output:</strong><br><br>${deciphered}</div>`;
+    }
+
+    function renderFallbackUI(message) {
+      const container = document.getElementById("output-container");
+      container.innerHTML = `<div class="card error"><strong>Error:</strong> ${message}</div>`;
+    }
+
+    // ==========================================
+    // 4. DATA PERSISTENCE
+    // ==========================================
+    function saveToMomFavorites(supplementName, ingredientMatrix) {
+      if (!ingredientMatrix) return alert("Nothing to save yet! Analyze a label first.");
+
+      const currentLog = JSON.parse(localStorage.getItem("moms_matrix")) || [];
+      currentLog.push({
+        name: supplementName,
+        data: ingredientMatrix,
+        date: Date.now()
+      });
+      localStorage.setItem("moms_matrix", JSON.stringify(currentLog));
+      alert(`Saved "${supplementName}" to Mom's Favorites!`);
+    }
+
+    function saveCurrentToFavorites() {
+      saveToMomFavorites(latestSupplementName, latestIngredientMatrix);
+    }
+  </script>
 </body>
 </html>
