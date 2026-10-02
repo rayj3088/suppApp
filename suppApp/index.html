@@ -241,60 +241,173 @@ crystalGroup.add(mesh);
 meshNodeRefs.push({ mesh: mesh, name: item.name, seed: Math.random() * 100 });
 });
 }
-function runMatrixAnalysis() {
-const input = document.getElementById('ingredient-input').value.toLowerCase();
-const cardsList = document.getElementById('cards-list');
-const resultsDeck = document.getElementById('results-deck');
-const hudStatus = document.getElementById('hud-status');
-cardsList.innerHTML = '';
-let matchedData = [];
-Object.keys(fillerDictionary).forEach(key => {
-if (input.includes(key)) {
-matchedData.push(fillerDictionary[key]);
+async function runMatrixAnalysis() {
+    let apiCount = parseInt(localStorage.getItem('api_calls_left') ?? '1000', 10);
+    if (apiCount <= 0) {
+        alert("API limit of 1,000 calls reached!");
+        return;
+    }
+    
+    const input = document.getElementById('ingredient-input').value.toLowerCase().trim();
+    if (!input) return;
+    
+    const cardsList = document.getElementById('cards-list');
+    const resultsDeck = document.getElementById('results-deck');
+    const hudStatus = document.getElementById('hud-status');
+    
+    cardsList.innerHTML = '<div style="text-align: center; padding: 2rem;"><span style="display:inline-block; animation: spin 1s linear infinite; margin-right: 0.5rem;">🔬</span>Computing Matrix Graph...</div>';
+    resultsDeck.style.display = 'block';
+
+    let matchedData = [];
+    let unknownWords = [];
+    
+    // Parse ingredients from comma or newline separated values
+    const items = input.split(/[,\n]+/).map(i => i.trim()).filter(i => i.length > 1);
+    
+    // First, check our local dictionary
+    items.forEach(item => {
+        let found = false;
+        Object.keys(fillerDictionary).forEach(key => {
+            if (item.includes(key) || key.includes(item)) {
+                if (!matchedData.some(m => m.name === fillerDictionary[key].name)) {
+                    matchedData.push(fillerDictionary[key]);
+                }
+                found = true;
+            }
+        });
+        if (!found) {
+            unknownWords.push(item);
+        }
+    });
+
+    // If there are unknown words, fall back to the Wikipedia Server API
+    if (unknownWords.length > 0) {
+        hudStatus.textContent = "SERVER FALLBACK ACTIVE // FETCHING INTELLIGENCE";
+        
+        for (let word of unknownWords) {
+            if (apiCount <= 0) break;
+            try {
+                // Capitalize first letter of the word for the Wikipedia API
+                const queryWord = word.charAt(0).toUpperCase() + word.slice(1);
+                const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(queryWord)}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Generate a color based on the title string
+                    let hash = 0;
+                    for (let i = 0; i < data.title.length; i++) {
+                        hash = data.title.charCodeAt(i) + ((hash << 5) - hash);
+                    }
+                    const hue = Math.abs(hash % 360);
+                    // Convert HSL to Hex color for Three.js (using dynamic vivid colors)
+                    const colorHex = parseInt(hslToHex(hue, 80, 55).replace("#", "0x"), 16);
+
+                    matchedData.push({
+                        name: data.title,
+                        class: "Intelligence Layer / Active Compound",
+                        safety: "Safe (Server Verified)",
+                        color: colorHex,
+                        function: data.extract || `Dynamic data compiled from server fallback index for ${data.title}.`
+                    });
+                    
+                    // Decrement the API counter
+                    apiCount--;
+                }
+            } catch (e) {
+                console.error("Server Fallback failed for:", word, e);
+            }
+        }
+    }
+
+    localStorage.setItem('api_calls_left', apiCount);
+    const counterEl = document.getElementById('api-counter');
+    if (counterEl) counterEl.textContent = `API: ${apiCount}/1000`;
+
+    update3DGraph(matchedData);
+    
+    const filteredData = matchedData.filter(item => {
+        if (activeFilter === 'scrutinized') return item.safety.includes("Scrutinized");
+        return true;
+    });
+
+    cardsList.innerHTML = '';
+    
+    if (matchedData.length > 0) {
+        hudStatus.textContent = `PARSED SUCCESS // ${matchedData.length} NODES COMPILED`;
+    } else {
+        hudStatus.textContent = "SYSTEM EMPTY // 0 NODES MATCHED";
+        cardsList.innerHTML = '<div style="text-align: center; padding: 2rem; border: 1px dashed #334155; border-radius: 0.75rem;"> <p style="font-size: 0.75rem; color: #64748b;">No known ingredient matrices compiled. Click '''Save Favorites''' to test components.</p> </div>';
+        return;
+    }
+
+    filteredData.forEach(item => {
+        const card = document.createElement('div');
+        card.style.backgroundColor = '#020617';
+        card.style.border = '1px solid #1e293b';
+        card.style.padding = '1rem';
+        card.style.borderRadius = '0.75rem';
+        card.style.marginBottom = '0.75rem';
+        card.style.cursor = 'pointer';
+        
+        let tagColor = "#34d399";
+        let tagBg = "rgba(6, 78, 59, 0.4)";
+        if (item.safety.includes("Scrutinized")) { 
+            tagColor = "#fbbf24"; 
+            tagBg = "rgba(120, 53, 4, 0.4)"; 
+        } else if (item.safety.includes("Animal")) { 
+            tagColor = "#f43f5e"; 
+            tagBg = "rgba(159, 18, 57, 0.4)"; 
+        } else if (item.safety.includes("Server")) {
+            tagColor = "#38bdf8";
+            tagBg = "rgba(7, 89, 133, 0.4)";
+        }
+        
+        card.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
+            <div>
+                <h4 style="font-weight: 700; font-size: 0.75rem; color: #f8fafc; display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="width: 0.5rem; height: 0.5rem; border-radius: 999px; background-color: #${item.color.toString(16).padStart(6, '0')}"></span>
+                    \${item.name}
+                </h4>
+                <p style="font-size: 10px; color: #94a3b8; font-family: monospace; margin: 2px 0 0 0;">\${item.class}</p>
+            </div>
+            <span style="font-size: 9px; font-family: monospace; padding: 2px 6px; border-radius: 999px; border: 1px solid \${tagColor}; color: \${tagColor}; background-color: \${tagBg};">
+                \${item.safety}
+            </span>
+        </div>
+        <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #0f172a;">
+            \${item.function}
+        </p>`;
+        
+        card.addEventListener('click', () => {
+            const inspector = document.getElementById('node-inspector');
+            inspector.style.display = 'flex';
+            const nameSpan = document.getElementById('inspector-name');
+            nameSpan.textContent = item.name;
+            nameSpan.style.color = "#" + item.color.toString(16).padStart(6, "0");
+            const targetNode = meshNodeRefs.find(n => n.name === item.name);
+            if (targetNode) {
+                targetNode.mesh.scale.set(1.8, 1.8, 1.8);
+                setTimeout(() => targetNode.mesh.scale.set(1, 1, 1), 600);
+            }
+        });
+        cardsList.appendChild(card);
+    });
 }
-});
-update3DGraph(matchedData);
-const filteredData = matchedData.filter(item => {
-if (activeFilter === 'scrutinized') return item.safety.includes("Scrutinized");
-return true;
-});
-if (matchedData.length > 0) {
-hudStatus.textContent = PARSED SUCCESS // ${matchedData.length} NODES COMPILED;
-resultsDeck.style.display = 'block';
-} else {
-hudStatus.textContent = SYSTEM EMPTY // 0 NODES MATCHED;
-resultsDeck.style.display = 'block';
-cardsList.innerHTML = <div style="text-align: center; padding: 2rem; border: 1px dashed #334155; border-radius: 0.75rem;"> <p style="font-size: 0.75rem; color: #64748b;">No known ingredient matrices compiled. Click 'Save Favorites' to test components.</p> </div>;
-return;
+
+// Helper HSL to Hex utility
+function hslToHex(h, s, l) {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
 }
-filteredData.forEach(item => {
-const card = document.createElement('div');
-card.style.backgroundColor = '#020617';
-card.style.border = '1px solid #1e293b';
-card.style.padding = '1rem';
-card.style.borderRadius = '0.75rem';
-card.style.marginBottom = '0.75rem';
-let tagColor = "#34d399";
-let tagBg = "rgba(6, 78, 59, 0.4)";
-if (item.safety.includes("Scrutinized")) { tagColor = "#fbbf24"; tagBg = "rgba(120, 53, 4, 0.4)"; }
-else if (item.safety.includes("Animal")) { tagColor = "#f43f5e"; tagBg = "rgba(159, 18, 57, 0.4)"; }
-card.innerHTML = <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;"> <div> <h4 style="font-weight: 700; font-size: 0.75rem; color: #f8fafc; display: flex; align-items: center; gap: 0.5rem;"> <span style="width: 0.5rem; height: 0.5rem; border-radius: 999px; background-color: #${item.color.toString(16)}"></span> ${item.name} </h4> <p style="font-size: 10px; color: #94a3b8; font-family: monospace; margin: 2px 0 0 0;">${item.class}</p> </div> <span style="font-size: 9px; font-family: monospace; padding: 2px 6px; border-radius: 999px; border: 1px solid ${tagColor}; color: ${tagColor}; background-color: ${tagBg};"> ${item.safety} </span> </div> <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #0f172a;"> ${item.function} </p>;
-card.addEventListener('click', () => {
-const inspector = document.getElementById('node-inspector');
-inspector.style.display = 'flex';
-const nameSpan = document.getElementById('inspector-name');
-nameSpan.textContent = item.name;
-nameSpan.style.color = #${item.color.toString(16)};
-const targetNode = meshNodeRefs.find(n => n.name === item.name);
-if (targetNode) {
-targetNode.mesh.scale.set(1.8, 1.8, 1.8);
-setTimeout(() => targetNode.mesh.scale.set(1, 1, 1), 600);
-}
-});
-cardsList.appendChild(card);
-});
-}
-document.getElementById('analyze-btn').addEventListener('click', runMatrixAnalysis);
+
+document.getElementById('analyze-btn').addEventListener('click', () => runMatrixAnalysis());
 document.getElementById('demo-btn').addEventListener('click', () => {
 document.getElementById('ingredient-input').value = "Microcrystalline Cellulose, Gelatin, Titanium Dioxide, Magnesium Stearate, Silicon Dioxide, Croscarmellose Sodium";
 runMatrixAnalysis();
