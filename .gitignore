@@ -1,0 +1,18 @@
+# Secret keys & environment files
+.env
+.env.local
+.env.*.local
+keys/
+secrets/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs & caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.parcel-cache/
+dist/
+build/
