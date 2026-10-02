@@ -56,7 +56,7 @@ export function saveCurrentToFavorites() {
   alert(`Saved "${latestSupplementName}" to Favorites!`);
 }
 
-// Wire up events
+// Event Listeners
 window.addEventListener("DOMContentLoaded", () => {
   updateApiBadge(getApiCount());
   

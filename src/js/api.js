@@ -1,4 +1,4 @@
-import { updateUIState, renderFallbackUI, updateApiBadge } from './ui.js';
+import { updateApiBadge } from './ui.js';
 
 export function getApiCount() {
   return parseInt(localStorage.getItem('api_calls_left') ?? '1000', 10);
@@ -23,13 +23,11 @@ export async function runBrowserNativeAI(inputText) {
 }
 
 export async function fetchFromServerProxyAPI(inputText) {
-  // If count is exhausted
   if (getApiCount() <= 0) {
-    throw new Error("API call limit (1,000) reached.");
+    throw new Error("API call limit of 1,000 reached.");
   }
 
   try {
-    // Look up the ingredient directly via Wikipedia summary API
     const cleanWord = inputText.trim().split(/[,\n]/)[0].trim();
     const queryWord = cleanWord.charAt(0).toUpperCase() + cleanWord.slice(1);
     
@@ -45,29 +43,4 @@ export async function fetchFromServerProxyAPI(inputText) {
 
   decrementApiCount();
   return "Server API fallback response triggered for unstructured text.";
-}
-
-export async function searchGovernmentAPI(productName) {
-  try {
-    updateUIState("THINKING_ORB_ACTIVE");
-    const searchUrl = `https://api.ods.od.nih.gov/dsld/v9/browse-products/?method=by_keyword&q=${encodeURIComponent(productName)}`;
-    const searchResponse = await fetch(searchUrl);
-    const searchData = await searchResponse.json();
-
-    if (!searchData || searchData.length === 0) {
-      throw new Error("No supplements found matching that name.");
-    }
-
-    const firstMatchId = searchData[0].dsldId;
-    const labelUrl = `https://api.ods.od.nih.gov/dsld/v9/label/${firstMatchId}`;
-    const labelResponse = await fetch(labelUrl);
-    const labelData = await labelResponse.json();
-
-    updateUIState("SUCCESS_ORB_ACTIVE");
-    return labelData;
-  } catch (error) {
-    console.error("Government API Error:", error);
-    updateUIState("ERROR_ORB_ACTIVE");
-    renderFallbackUI(error.message);
-  }
 }

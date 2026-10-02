@@ -1,0 +1,11 @@
+{
+  "name": "suppapp",
+  "version": "3.0.0",
+  "description": "LabelNerd Matrix Supplement Analysis App",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
