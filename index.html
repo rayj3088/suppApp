@@ -1,7 +1,176 @@
 <!DOCTYPE html>
-<html>
-<head><title>suppApp</title></head>
-<body>
-  <h1>suppApp</h1>
-</body>
-</html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Supplement Ingredient Matrix</title>
+    <script src="https://tailwindcss.com"></script>
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-slate-900">
+
+    <!-- Sticky Mobile Header -->
+    <header class="sticky top-0 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 z-50 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="text-xl">🧪</span>
+            <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">LabelNerd v1.0</h1>
+        </div>
+        <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Mobile Matrix</span>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-md w-full mx-auto px-4 py-6 space-y-6 pb-24">
+        
+        <!-- Welcome Card -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-850 p-4 rounded-2xl border border-slate-700/50 shadow-xl">
+            <h2 class="text-base font-semibold text-cyan-300 flex items-center gap-1.5">
+                <span>🧬</span> Welcome, Supplement Scientist!
+            </h2>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                Paste the "Other Ingredients" list from the back of any supplement bottle below to decode the binders, flow agents, and fillers.
+            </p>
+        </div>
+
+        <!-- Input Section -->
+        <div class="space-y-2">
+            <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Paste Inactive Ingredients</label>
+            <textarea id="ingredient-input" 
+                class="w-full h-32 bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors placeholder:text-slate-600 resize-none shadow-inner"
+                placeholder="e.g., Microcrystalline Cellulose, Magnesium Stearate, Silicon Dioxide, Hypromellose, Stearic Acid..."></textarea>
+            
+            <button id="analyze-btn" 
+                class="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 active:scale-[0.98] text-slate-950 font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-lg shadow-cyan-500/10 flex items-center justify-center gap-2">
+                <span>🔎</span> Run Matrix Analysis
+            </button>
+        </div>
+
+        <!-- Results Dynamic Render View -->
+        <div id="results-container" class="hidden space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h3 class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Analysis Breakdown</h3>
+                <span id="match-count" class="text-xs font-mono text-teal-400 bg-teal-950/50 border border-teal-900 px-2 py-0.5 rounded-full">0 Found</span>
+            </div>
+            
+            <div id="cards-list" class="space-y-3">
+                <!-- JS dynamically injects cards here -->
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Database of common filler profiles for the supplement nerd
+        const fillerDictionary = {
+            "microcrystalline cellulose": {
+                name: "Microcrystalline Cellulose",
+                class: "Bulking Agent / Binder",
+                safety: "Safe (Plant-Derived)",
+                function: "Refined wood pulp. Gives structural substance to a pill so it's physically large enough to hold. It acts as a biocompatible sponge that helps tablets break apart perfectly in the stomach."
+            },
+            "magnesium stearate": {
+                name: "Magnesium Stearate",
+                class: "Flow Agent / Lubricant",
+                safety: "Safe (Minimal Amounts)",
+                function: "A magnesium salt mixed with fatty acids. It acts as a lubricant to prevent supplement ingredients from sticking to industrial machinery during encapsulation. Highly debated by purists, but technically safe in low doses."
+            },
+            "silicon dioxide": {
+                name: "Silicon Dioxide",
+                class: "Anti-Caking Agent",
+                safety: "Safe",
+                function: "Essentially pure, microscopic quartz sand. It absorbs ambient moisture and prevents powders from clumping up, ensuring absolute uniformity and accurate milligram dosing per capsule."
+            },
+            "stearic acid": {
+                name: "Stearic Acid",
+                class: "Binder / Lubricant",
+                safety: "Safe",
+                function: "A naturally occurring saturated fatty acid. Used to harden tablets and lubricate production lines, ensuring smooth delivery without capsule breakdown during storage."
+            },
+            "hypromellose": {
+                name: "Hypromellose (HPMC)",
+                class: "Capsule Shell / Coating",
+                safety: "Vegan Alternative",
+                function: "Hydroxypropyl methylcellulose. A plant-based alternative to animal gelatin used to create the clear outer shell of veggie capsules. Dissolves efficiently in standard gastric environments."
+            },
+            "gelatin": {
+                name: "Gelatin",
+                class: "Capsule Shell",
+                safety: "Animal-Derived",
+                function: "A protein derived from collagen (usually bovine or porcine). The classic structural material for softgels and hard capsules. Provides an excellent moisture barrier but is not vegetarian."
+            },
+            "titanium dioxide": {
+                name: "Titanium Dioxide",
+                class: "Color Opacifier",
+                safety: "Highly Scrutinized",
+                function: "A mineral used strictly to turn supplement pills bright white or opaque to protect light-sensitive ingredients. Increasingly banned or heavily restricted in food items globally (e.g., the EU) due to nanoparticle cellular accumulation concerns."
+            },
+            "croscarmellose sodium": {
+                name: "Croscarmellose Sodium",
+                class: "Superdisintegrant",
+                safety: "Safe",
+                function: "An internally cross-linked sodium carboxymethylcellulose. Its sole job is to swell up rapidly when exposed to stomach acid, violently rupturing the dense tablet matrix apart to optimize maximum nutrient absorption windows."
+            }
+        };
+
+        document.getElementById('analyze-btn').addEventListener('click', () => {
+            const input = document.getElementById('ingredient-input').value.toLowerCase();
+            const cardsList = document.getElementById('cards-list');
+            const resultsContainer = document.getElementById('results-container');
+            const matchCount = document.getElementById('match-count');
+            
+            cardsList.innerHTML = ''; // Reset list
+            let foundCount = 0;
+
+            // Scan through database keys to match strings
+            Object.keys(fillerDictionary).forEach(key => {
+                if (input.includes(key)) {
+                    foundCount++;
+                    const item = fillerDictionary[key];
+                    
+                    // Create beautiful mobile cards dynamically
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-800/60 border border-slate-700/40 p-4 rounded-xl space-y-2 shadow-sm transition-all";
+                    
+                    // Style safety tag colors based on profile context
+                    let safetyColor = "text-emerald-400 bg-emerald-950/40 border-emerald-900";
+                    if (item.safety.includes("Scrutinized")) {
+                        safetyColor = "text-amber-400 bg-amber-950/40 border-amber-900";
+                    }
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-100">${item.name}</h4>
+                                <p class="text-xs text-cyan-400/90 font-medium">${item.class}</p>
+                            </div>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${safetyColor}">
+                                ${item.safety}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed pt-1 border-t border-slate-700/30">
+                            ${item.function}
+                        </p>
+                    `;
+                    cardsList.appendChild(card);
+                }
+            });
+
+            // Display results or empty states nicely
+            if (foundCount > 0) {
+                matchCount.textContent = `${foundCount} Decoded`;
+                resultsContainer.classList.remove('hidden');
+                resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                matchCount.textContent = `0 Decoded`;
+                resultsContainer.classList.remove('hidden');
+                cardsList.innerHTML = `
+                    <div class="text-center p-6 bg-slate-950/30 border border-dashed border-slate-800 rounded-xl">
+                        <p class="text-xs text-slate-500">No known inactive ingredients detected. Try pasting a few separate elements separated by commas!</p>
+`;
+}
+});
+
