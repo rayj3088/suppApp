@@ -3,174 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Supplement Ingredient Matrix</title>
+    <title>LabelNerd Matrix 3D</title>
+    <!-- Tailwind CSS & Three.js Engines -->
     <script src="https://tailwindcss.com"></script>
+    <script src="https://cloudflare.com"></script>
     <style>
         body {
             -webkit-tap-highlight-color: transparent;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #020617;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 999px;
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-slate-900">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased select-none overflow-x-hidden">
 
-    <!-- Sticky Mobile Header -->
-    <header class="sticky top-0 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 z-50 flex items-center justify-between">
+    <!-- Sticky Navigation Header -->
+    <header class="sticky top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/60 px-4 py-3 z-50 flex items-center justify-between">
         <div class="flex items-center gap-2">
-            <span class="text-xl">🧪</span>
-            <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">LabelNerd v1.0</h1>
+            <span class="text-xl animate-pulse">⚛️</span>
+            <h1 class="text-base font-black tracking-wider bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">LABELNERD v2.0</h1>
         </div>
-        <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Mobile Matrix</span>
+        <span class="text-[10px] font-mono tracking-widest px-2 py-0.5 rounded-md bg-cyan-950/40 text-cyan-400 border border-cyan-800/50 shadow-sm shadow-cyan-500/5">3D ENGINE ACTIVE</span>
     </header>
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-md w-full mx-auto px-4 py-6 space-y-6 pb-24">
-        
-        <!-- Welcome Card -->
-        <div class="bg-gradient-to-br from-slate-800 to-slate-850 p-4 rounded-2xl border border-slate-700/50 shadow-xl">
-            <h2 class="text-base font-semibold text-cyan-300 flex items-center gap-1.5">
-                <span>🧬</span> Welcome, Supplement Scientist!
-            </h2>
-            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-                Paste the "Other Ingredients" list from the back of any supplement bottle below to decode the binders, flow agents, and fillers.
-            </p>
-        </div>
+    <!-- Main Container Layout tailored for Mobile Device Viewports -->
+    <main class="flex-1 max-w-md w-full mx-auto flex flex-col overflow-hidden">
 
-        <!-- Input Section -->
-        <div class="space-y-2">
-            <label class="block text-xs font-semibold tracking-wider text-slate-400 uppercase">Paste Inactive Ingredients</label>
-            <textarea id="ingredient-input" 
-                class="w-full h-32 bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors placeholder:text-slate-600 resize-none shadow-inner"
-                placeholder="e.g., Microcrystalline Cellulose, Magnesium Stearate, Silicon Dioxide, Hypromellose, Stearic Acid..."></textarea>
-            
-            <button id="analyze-btn" 
-                class="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 active:scale-[0.98] text-slate-950 font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-lg shadow-cyan-500/10 flex items-center justify-center gap-2">
-                <span>🔎</span> Run Matrix Analysis
-            </button>
-        </div>
-
-        <!-- Results Dynamic Render View -->
-        <div id="results-container" class="hidden space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                <h3 class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Analysis Breakdown</h3>
-                <span id="match-count" class="text-xs font-mono text-teal-400 bg-teal-950/50 border border-teal-900 px-2 py-0.5 rounded-full">0 Found</span>
-            </div>
-            
-            <div id="cards-list" class="space-y-3">
-                <!-- JS dynamically injects cards here -->
+        <!-- Interactive 3D Canvas Section -->
+        <div class="relative w-full h-56 bg-slate-950 border-b border-slate-800/80 overflow-hidden shadow-inner flex-shrink-0">
+            <div id="three-canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+            <!-- HUD overlay -->
+            <div class="absolute bottom-2 left-3 right-3 flex justify-between items-center pointer-events-none">
+                <span id="hud-status" class="text-[10px] font-mono text-slate-500 tracking-wider">SYSTEM IDLE // STANDBY</span>
+                <span id="hud-rotation" class="text-[9px] font-mono text-slate-600">ORBITING MATRIX</span>
             </div>
         </div>
 
+        <!-- Scrollable Dashboard Controls & Results Container -->
+        <div class="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-28 custom-scrollbar">
+
+            <!-- Matrix Control Input Deck -->
+            <div class="space-y-2 bg-slate-900/40 p-4 rounded-2xl border border-slate-800/80 shadow-lg backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Ingredient Batch Payload</label>
+                    <button id="demo-btn" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold tracking-wide transition-colors flex items-center gap-1">
+                        <span>⚡</span> Load Nerd Sample
+                    </button>
+                </div>
+
+                <textarea id="ingredient-input"
+                    class="w-full h-24 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 transition-all placeholder:text-slate-700 resize-none shadow-inner"
+                    placeholder="Paste inactive ingredient formulation label matrices..."></textarea>
+
+                <button id="analyze-btn"
+                    class="w-full bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:opacity-95 text-slate-950 font-black tracking-wider py-3 px-4 rounded-xl text-xs transition-all shadow-lg shadow-cyan-500/10 uppercase flex items-center justify-center gap-2">
+                    <span>🔬</span> Compute Matrix Graph
+                </button>
+            </div>
+
+            <!-- Dashboard Comparison Metrics Deck -->
+            <div id="results-deck" class="hidden space-y-4 animate-fade-in">
+
+                <!-- Filter Tool Belt -->
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                    <h3 class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Comparison Matrix Output</h3>
+                    <div class="flex gap-1">
+                        <button id="filter-all" class="text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">ALL</button>
+                        <button id="filter-scrutinized" class="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-800 hover:text-amber-400 hover:border-amber-900 transition-all">SCRUTINIZED</button>
+                    </div>
+                </div>
+
+                <!-- Active 3D Node Inspection Highlight Card -->
+                <div id="node-inspector" class="bg-gradient-to-r from-cyan-950/20 to-slate-900/40 border border-cyan-900/30 p-3 rounded-xl hidden flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
+                    <div class="text-[11px]">
+                        <span class="text-slate-400">Selected Node Focus:</span>
+                        <strong id="inspector-name" class="text-cyan-400 font-bold ml-1">None</strong>
+                    </div>
+                </div>
+
+                <!-- Output Target Dynamic List -->
+                <div id="cards-list" class="space-y-3">
+                    <!-- Dynamic Matrix Cards Injected Here -->
+                </div>
+            </div>
+
+        </div>
     </main>
 
+    <!-- Code Injection Patch Script -->
     <script>
-        // Database of common filler profiles for the supplement nerd
+        // Complex Database Profile System for Supplement Additives
         const fillerDictionary = {
             "microcrystalline cellulose": {
                 name: "Microcrystalline Cellulose",
                 class: "Bulking Agent / Binder",
                 safety: "Safe (Plant-Derived)",
+                color: 0x2dd4bf, // Teal
                 function: "Refined wood pulp. Gives structural substance to a pill so it's physically large enough to hold. It acts as a biocompatible sponge that helps tablets break apart perfectly in the stomach."
             },
             "magnesium stearate": {
                 name: "Magnesium Stearate",
                 class: "Flow Agent / Lubricant",
                 safety: "Safe (Minimal Amounts)",
+                color: 0x38bdf8, // Sky Blue
                 function: "A magnesium salt mixed with fatty acids. It acts as a lubricant to prevent supplement ingredients from sticking to industrial machinery during encapsulation. Highly debated by purists, but technically safe in low doses."
             },
             "silicon dioxide": {
                 name: "Silicon Dioxide",
                 class: "Anti-Caking Agent",
                 safety: "Safe",
+                color: 0x60a5fa, // Blue
                 function: "Essentially pure, microscopic quartz sand. It absorbs ambient moisture and prevents powders from clumping up, ensuring absolute uniformity and accurate milligram dosing per capsule."
             },
             "stearic acid": {
                 name: "Stearic Acid",
                 class: "Binder / Lubricant",
                 safety: "Safe",
+                color: 0x818cf8, // Indigo
                 function: "A naturally occurring saturated fatty acid. Used to harden tablets and lubricate production lines, ensuring smooth delivery without capsule breakdown during storage."
             },
             "hypromellose": {
                 name: "Hypromellose (HPMC)",
                 class: "Capsule Shell / Coating",
                 safety: "Vegan Alternative",
+                color: 0x34d399, // Emerald
                 function: "Hydroxypropyl methylcellulose. A plant-based alternative to animal gelatin used to create the clear outer shell of veggie capsules. Dissolves efficiently in standard gastric environments."
             },
             "gelatin": {
                 name: "Gelatin",
                 class: "Capsule Shell",
                 safety: "Animal-Derived",
+                color: 0xf43f5e, // Rose
                 function: "A protein derived from collagen (usually bovine or porcine). The classic structural material for softgels and hard capsules. Provides an excellent moisture barrier but is not vegetarian."
             },
             "titanium dioxide": {
                 name: "Titanium Dioxide",
                 class: "Color Opacifier",
                 safety: "Highly Scrutinized",
+                color: 0xf59e0b, // Amber
                 function: "A mineral used strictly to turn supplement pills bright white or opaque to protect light-sensitive ingredients. Increasingly banned or heavily restricted in food items globally (e.g., the EU) due to nanoparticle cellular accumulation concerns."
             },
             "croscarmellose sodium": {
                 name: "Croscarmellose Sodium",
                 class: "Superdisintegrant",
                 safety: "Safe",
+                color: 0xa855f7, // Purple
                 function: "An internally cross-linked sodium carboxymethylcellulose. Its sole job is to swell up rapidly when exposed to stomach acid, violently rupturing the dense tablet matrix apart to optimize maximum nutrient absorption windows."
             }
         };
 
-        document.getElementById('analyze-btn').addEventListener('click', () => {
-            const input = document.getElementById('ingredient-input').value.toLowerCase();
-            const cardsList = document.getElementById('cards-list');
-            const resultsContainer = document.getElementById('results-container');
-            const matchCount = document.getElementById('match-count');
-            
-            cardsList.innerHTML = ''; // Reset list
-            let foundCount = 0;
+        // 3D Scene Initialization Pipeline Global Cache
+        let scene, camera, renderer, crystalGroup;
+        let meshNodeRefs = [];
+        let activeFilter = 'all';
 
-            // Scan through database keys to match strings
-            Object.keys(fillerDictionary).forEach(key => {
-                if (input.includes(key)) {
-                    foundCount++;
-                    const item = fillerDictionary[key];
-                    
-                    // Create beautiful mobile cards dynamically
-                    const card = document.createElement('div');
-                    card.className = "bg-slate-800/60 border border-slate-700/40 p-4 rounded-xl space-y-2 shadow-sm transition-all";
-                    
-                    // Style safety tag colors based on profile context
-                    let safetyColor = "text-emerald-400 bg-emerald-950/40 border-emerald-900";
-                    if (item.safety.includes("Scrutinized")) {
-                        safetyColor = "text-amber-400 bg-amber-950/40 border-amber-900";
-                    }
-
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start gap-2">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-100">${item.name}</h4>
-                                <p class="text-xs text-cyan-400/90 font-medium">${item.class}</p>
-                            </div>
-                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${safetyColor}">
-                                ${item.safety}
-                            </span>
-                        </div>
-                        <p class="text-xs text-slate-300 leading-relaxed pt-1 border-t border-slate-700/30">
-                            ${item.function}
-                        </p>
-                    `;
-                    cardsList.appendChild(card);
-                }
-            });
-
-            // Display results or empty states nicely
-            if (foundCount > 0) {
-                matchCount.textContent = `${foundCount} Decoded`;
-                resultsContainer.classList.remove('hidden');
-                resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            } else {
-                matchCount.textContent = `0 Decoded`;
-                resultsContainer.classList.remove('hidden');
-                cardsList.innerHTML = `
-                    <div class="text-center p-6 bg-slate-950/30 border border-dashed border-slate-800 rounded-xl">
-                        <p class="text-xs text-slate-500">No known inactive ingredients detected. Try pasting a few separate elements separated by commas!</p>
-`;
+        function init3DEngine() {
+const container = document.getElementById('three-canvas-container');
+const width = container.clientWidth;
+const height = container.clientHeight;
+// Scene & Viewport setup
+scene = new THREE.Scene();
+scene.background = new THREE.Color(0x020617); // Matching dark environment slate-950
+camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+camera.position.z = 12;
+renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(width, height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+container.appendChild(renderer.domElement);
+// Lighting Rig configuration
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+const pointLight = new THREE.PointLight(0x2dd4bf, 1, 50);
+pointLight.position.set(5, 5, 5);
+scene.add(pointLight);
+// Structural Assembly Core Center Group
+crystalGroup = new THREE.Group();
+scene.add(crystalGroup);
+// Build an abstract base matrix core layout wireframe
+const coreGeo = new THREE.IcosahedronGeometry(2, 1);
+const coreMat = new THREE.MeshBasicMaterial({ color: 0x1e293b, wireframe: true, transparent: true, opacity: 0.3 });
+const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+crystalGroup.add(coreMesh);
+// Render loop trigger execution
+animate3DEngine();
+// Mobile Resizing Adjustments Hook
+window.addEventListener('resize', () => {
+const w = container.clientWidth;
+const h = container.clientHeight;
+camera.aspect = w / h;
+camera.updateProjectionMatrix();
+renderer.setSize(w, h);
+});
+}
+// Global Graphics Animation Ticks
+function animate3DEngine() {
+requestAnimationFrame(animate3DEngine);
+// Ambient systematic axis rotation modeling
+crystalGroup.rotation.y += 0.003;
+crystalGroup.rotation.x += 0.0015;
+// Dynamic orbit movements assigned per element node
+meshNodeRefs.forEach(node => {
+node.mesh.position.y += Math.sin(Date.now() * 0.002 + node.seed) * 0.003;
+});
+renderer.render(scene, camera);
+}
+// Structural Generation Logic for 3D Graph Nodes
+function update3DGraph(activeMatches) {
+// Disassemble past nodes safely
+meshNodeRefs.forEach(node => crystalGroup.remove(node.mesh));
+meshNodeRefs = [];
+if (activeMatches.length === 0) return;
+const radius = 3.5;
+activeMatches.forEach((item, index) => {
+// Calculate uniform orbital coordinate placement arrays around core
+const phi = Math.acos(-1 + (2 * index) / activeMatches.length);
+const theta = Math.sqrt(activeMatches.length * Math.PI) * phi;
+// Alternate structural geometries to represent chemical classification profiles
+let geometry;
+if (item.safety.includes("Scrutinized")) {
+geometry = new THREE.OctahedronGeometry(0.5, 0); // Diamond hazard profile shape
+} else if (item.class.includes("Shell")) {
+geometry = new THREE.TorusGeometry(0.3, 0.1, 8, 24); // Donut structure profile
+} else {
+geometry = new THREE.SphereGeometry(0.4, 16, 16); // Safe uniform compound spheres
+}
+const material = new THREE.MeshPhongMaterial({
+color: item.color,
+emissive: item.color,
+emissiveIntensity: 0.2,
+shininess: 100,
+flatShading: true
+});
+const mesh = new THREE.Mesh(geometry, material);
+mesh.position.x = radius * Math.cos(theta) * Math.sin(phi);
+mesh.position.y = radius * Math.sin(theta) * Math.sin(phi);
+mesh.position.z = radius * Math.cos(phi);
+crystalGroup.add(mesh);
+meshNodeRefs.push({
+mesh: mesh,
+name: item.name,
+seed: Math.random() * 100
+});
+});
+}
+// Core Comparison Engine & Card Rendering Controls
+function runMatrixAnalysis() {
+const input = document.getElementById('ingredient-input').value.toLowerCase();
+const cardsList = document.getElementById('cards-list');
+const resultsDeck = document.getElementById('results-deck');
+const hudStatus = document.getElementById('hud-status');
+cardsList.innerHTML = '';
+let matchedData = [];
+// Run structural substring matrix scan validations
+Object.keys(fillerDictionary).forEach(key => {
+if (input.includes(key)) {
+matchedData.push(fillerDictionary[key]);
 }
 });
+// Update 3D nodes real-time framework variables
+update3DGraph(matchedData);
+// Execute Filter Arrays
+const filteredData = matchedData.filter(item => {
+if (activeFilter === 'scrutinized') return item.safety.includes("Scrutinized");
+return true;
+});
+// Update HUD Metrics displays
+if (matchedData.length > 0) {
+hudStatus.textContent = PARSED SUCCESS // ${matchedData.length} NODES COMPILED;
+resultsDeck.classList.remove('hidden');
+} else {
+hudStatus.textContent = SYSTEM EMPTY // 0 NODES MATCHED;
+resultsDeck.classList.remove('hidden');
+cardsList.innerHTML = <div class="text-center p-8 bg-slate-900/20 border border-dashed border-slate-800 rounded-xl"> <p class="text-xs text-slate-500">No known ingredient matrices compiled. Click 'Load Nerd Sample' to test components.</p> </div>;
+return;
+}
+// Construct interface card layouts dynamically
+filteredData.forEach(item => {
+const card = document.createElement('div');
+card.className = "bg-slate-950 border border-slate-800/80 p-4 rounded-xl space-y-2 shadow-md transition-all active:border-cyan-500/50";
+let tagStyle = "text-emerald-400 bg-emerald-950/40 border-emerald-900/60";
+if (item.safety.includes("Scrutinized")) {
+tagStyle = "text-amber-400 bg-amber-950/40 border-amber-900/60";
+} else if (item.safety.includes("Animal")) {
+tagStyle = "text-rose-400 bg-rose-950/40 border-rose-900/60";
+}
+card.innerHTML = <div class="flex justify-between items-start gap-2"> <div> <h4 class="font-bold text-xs tracking-wide text-slate-100 flex items-center gap-2"> <span class="w-2 h-2 rounded-full" style="background-color: #${item.color.toString(16)}"></span> ${item.name} </h4> <p class="text-[10px] text-slate-400 font-mono mt-0.5">${item.class}</p> </div> <span class="text-[9px] font-mono px-2 py-0.5 rounded border ${tagStyle}"> ${item.safety} </span> </div> <p class="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-slate-950"> ${item.function} </p>;
+// Add event tracking to link card interaction selections straight to the 3D map views
+card.addEventListener('click', () => {
+document.getElementById('node-inspector').classList.remove('hidden');
+document.getElementById('inspector-name').textContent = item.name;
+document.getElementById('inspector-name').style.color = #${item.color.toString(16)};
+// Flash corresponding node visual sizes dynamically via temporary coordinate matrix multipliers
+const targetNode = meshNodeRefs.find(n => n.name === item.name);
+if (targetNode) {
+targetNode.mesh.scale.set(1.8, 1.8, 1.8);
+setTimeout(() => targetNode.mesh.scale.set(1, 1, 1), 600);
+}
+});
+cardsList.appendChild(card);
+});
+}
+// Global Functional Declarations & Initialization Core Listeners Hook setups
+document.getElementById('analyze-btn').addEventListener('click', runMatrixAnalysis);
+document.getElementById('demo-btn').addEventListener('click', () => {
+document.getElementById('ingredient-input').value = "Microcrystalline Cellulose, Gelatin, Titanium Dioxide, Magnesium Stearate, Silicon Dioxide, Croscarmellose Sodium";
+runMatrixAnalysis();
+});
+// Filter UI Action Bindings
+document.getElementById('filter-all').addEventListener('click', (e) => {
+activeFilter = 'all';
+updateFilterTabs(e.target);
+runMatrixAnalysis();
+});
+document.getElementById('filter-scrutinized').addEventListener('click', (e) => {
+activeFilter = 'scrutinized';
+updateFilterTabs(e.target);
+runMatrixAnalysis();
+});
+function updateFilterTabs(activeBtn) {
+['filter-all', 'filter-scrutinized'].forEach(id => {
+const btn = document.getElementById(id);
+btn.className = "text-[9px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-800 transition-all";
+});
+activeBtn.className = "text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800";
+}
+// Initialize Engine Systems upon DOM loads
+window.addEventListener('DOMContentLoaded', () => {
+init3DEngine();
+});
 
+
+### Features Built:
+1. **Interactive 3D Web Graphics:** The top component renders a black spatial field displaying rotating crystal geometric structures representing the additives.
+2. **Dynamic HUD Engine Interface:** Elements scale up and flash instantly when the comparison card below is clicked, linking the analytical details to the visual map.
+3. **Interactive Comparison Filter Deck:** toggle the "Scrutinized" filter tab to instantly screen out safe items and isolate ingredients like *Titanium Dioxide* to examine their structural impact.
