@@ -11,6 +11,16 @@ export function updateUIState(stateType) {
   orb.style.background = s.bg;
 }
 
+
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function concernBadge(level) {
   if (!level || level === "low") return "";
   const styles = {
@@ -32,7 +42,7 @@ export function renderOutputCards(matches, deciphered, quickTake, comparisons = 
     container.innerHTML += `
       <div class="card" style="border-left-color: var(--neon-green);">
         <div style="font-weight:700;margin-bottom:0.5rem;font-size:1.05rem;">⚡ Quick Take</div>
-        <p style="margin:0;font-size:0.95rem;line-height:1.55;color:#ddd;">${quickTake}</p>
+        <p style="margin:0;font-size:0.95rem;line-height:1.55;color:#ddd;">${escapeHTML(quickTake)}</p>
       </div>`;
   }
 
@@ -76,13 +86,13 @@ export function renderOutputCards(matches, deciphered, quickTake, comparisons = 
       <div style="background:#252525;padding:12px;border-radius:6px;margin-bottom:10px;border:1px solid #333;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:4px;">
           <span style="font-size:1rem;font-weight:700;color:var(--text-main);text-transform:capitalize;">
-            ${ing}${concernBadge(d.concern)}
+            ${escapeHTML(ing)}${concernBadge(d.concern)}
           </span>
           <span style="font-size:0.7rem;font-family:monospace;background:#111;color:var(--neon-green);padding:2px 6px;border-radius:4px;border:1px solid #222;">
             ${d.category}
           </span>
         </div>
-        <p style="margin:0 0 8px 0;font-size:0.85rem;color:#bbb;line-height:1.4;">${d.description}</p>
+        <p style="margin:0 0 8px 0;font-size:0.85rem;color:#bbb;line-height:1.4;">${escapeHTML(d.description)}</p>
         <div style="display:grid;grid-template-columns:1fr;gap:3px;font-size:0.75rem;font-family:monospace;color:#888;">
           ${d.elemental ? `<div><strong style="color:#a78bfa;">Elemental:</strong> ${d.elemental}</div>` : ""}
           <div><strong style="color:#60a5fa;">Solubility:</strong> ${d.solubility}</div>
@@ -101,7 +111,7 @@ export function renderOutputCards(matches, deciphered, quickTake, comparisons = 
     container.innerHTML += `
       <div class="card">
         <strong>Intelligence Layer</strong><br><br>
-        ${deciphered}
+        ${escapeHTML(deciphered)}
       </div>`;
   }
 }
@@ -109,7 +119,7 @@ export function renderOutputCards(matches, deciphered, quickTake, comparisons = 
 export function renderFallbackUI(message) {
   const container = document.getElementById("output-container");
   if (container) {
-    container.innerHTML = `<div class="card error"><strong>Error:</strong> ${message}</div>`;
+    container.innerHTML = `<div class="card error"><strong>Error:</strong> ${escapeHTML(message)}</div>`;
   }
 }
 
