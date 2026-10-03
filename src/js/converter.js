@@ -1,50 +1,91 @@
+// Each entry: density + optional source URL (PubChem or Wikipedia)
 export const VERIFIED_DENSITIES = {
-  "creatine": 0.86,
-  "creatine monohydrate": 0.86,
-  "vitamin c": 0.65,
-  "ascorbic acid": 0.65,
-  "inositol": 0.72,
-  "myo-inositol": 0.72,
-  "calcium carbonate": 1.05,
-  "calcium citrate": 0.90,
-  "magnesium citrate": 0.58,
-  "magnesium glycinate": 0.62,
-  "magnesium stearate": 0.40,
-  "bcaa": 0.42,
-  "l-glutamine": 0.48,
-  "glutamine": 0.48,
-  "glycine": 0.92,
-  "sodium bicarbonate": 1.10,
-  "baking soda": 1.10,
-  "caffeine": 0.50,
-  "collagen": 0.40
+  "creatine monohydrate": { density: 0.86, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Creatine" },
+  "creatine":             { density: 0.86, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Creatine" },
+  "ascorbic acid":        { density: 0.65, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Ascorbic-acid" },
+  "vitamin c":            { density: 0.65, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Ascorbic-acid" },
+  "myo-inositol":         { density: 0.72, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Inositol" },
+  "inositol":             { density: 0.72, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Inositol" },
+  "calcium carbonate":    { density: 1.05, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Calcium-carbonate" },
+  "calcium citrate":      { density: 0.90, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Calcium-citrate" },
+  "calcium borate":       { density: 0.95, url: "https://en.wikipedia.org/wiki/Calcium_borate" },
+  "calcium":              { density: 0.95, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Calcium" },
+  "magnesium citrate":    { density: 0.58, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Magnesium-citrate" },
+  "magnesium glycinate":  { density: 0.62, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Magnesium-glycinate" },
+  "magnesium oxide":      { density: 0.45, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Magnesium-oxide" },
+  "magnesium stearate":   { density: 0.40, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Magnesium-stearate" },
+  "magnesium":            { density: 0.55, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Magnesium" },
+  "l-glutamine":          { density: 0.48, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Glutamine" },
+  "glutamine":            { density: 0.48, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Glutamine" },
+  "sodium bicarbonate":   { density: 1.10, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Sodium-bicarbonate" },
+  "baking soda":          { density: 1.10, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Sodium-bicarbonate" },
+  "bcaa":                 { density: 0.42, url: null },
+  "glycine":              { density: 0.92, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Glycine" },
+  "caffeine":             { density: 0.50, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Caffeine" },
+  "collagen":             { density: 0.40, url: null },
+  "beta alanine":         { density: 0.55, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Beta-Alanine" },
+  "beta-alanine":         { density: 0.55, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Beta-Alanine" },
+  "taurine":              { density: 0.70, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Taurine" },
+  "zinc oxide":           { density: 0.90, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Zinc-oxide" },
+  "zinc":                 { density: 0.85, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Zinc" },
+  "iron":                 { density: 0.80, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Iron" },
+  "potassium":            { density: 0.70, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Potassium" },
+  "boron":                { density: 0.80, url: "https://pubchem.ncbi.nlm.nih.gov/compound/Boron" },
+  "borate":               { density: 0.90, url: null }
 };
 
+/**
+ * Returns:
+ *   { density, source, url }  on success
+ *   { density: null, source: "No reliable data", url: null } when unknown
+ * Never invents a number.
+ */
 export async function fetchDensityFromIntelligence(compoundName) {
   const clean = compoundName.toLowerCase().trim();
-  
-  // 1. Check verified local lookup first
-  for (const [key, density] of Object.entries(VERIFIED_DENSITIES)) {
+
+  // 1. Verified local lookup (longest / most specific first)
+  const sortedKeys = Object.keys(VERIFIED_DENSITIES)
+    .sort((a, b) => b.length - a.length);
+
+  for (const key of sortedKeys) {
     if (clean.includes(key)) {
-      return { density, source: "Verified Database" };
+      const entry = VERIFIED_DENSITIES[key];
+      return {
+        density: entry.density,
+        source: "Verified Database",
+        url: entry.url || null
+      };
     }
   }
 
-  // 2. Intelligence Layer fallback: Fetch live properties via Wikipedia/PubChem
+  // 2. Intelligence Layer – Wikipedia summary
   try {
-    const query = clean.charAt(0).toUpperCase() + clean.slice(1);
-    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+    const query = clean
+      .split(/\s+/)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join("_");
+
+    const apiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+    const res = await fetch(apiUrl, { headers: { "Accept": "application/json" } });
+
     if (res.ok) {
       const data = await res.json();
       const text = (data.extract || "").toLowerCase();
+      const pageUrl = data.content_urls?.desktop?.page ||
+        `https://en.wikipedia.org/wiki/${encodeURIComponent(query.replace(/_/g, " "))}`;
 
-      // Regex to search for density patterns like "1.65 g/cm3" or "0.8 g/ml"
-      const match = text.match(/([0-9]+\.?[0-9]*)\s*(g\/cm|g\/ml|g\/cm³)/i);
+      const match = text.match(
+        /([0-9]+\.?[0-9]*)\s*(g\/cm³|g\/cm3|g\/cm|g\/ml|g cm-3)/i
+      );
+
       if (match && match[1]) {
-        let val = parseFloat(match[1]);
-        // Guard against molecular weights and invalid ranges (typical powder bulk densities are 0.3 - 2.5 g/ml)
+        const val = parseFloat(match[1]);
         if (val >= 0.25 && val <= 2.5) {
-          return { density: val, source: "Intelligence Layer" };
+          return {
+            density: val,
+            source: "Wikipedia",
+            url: pageUrl
+          };
         }
       }
     }
@@ -52,16 +93,29 @@ export async function fetchDensityFromIntelligence(compoundName) {
     console.error("Intelligence density fetch error:", e);
   }
 
-  // Safe fallback if substance is unstructured
-  return { density: 0.70, source: "Estimated Average" };
+  // 3. Honest failure — no invented numbers
+  return {
+    density: null,
+    source: "No reliable data",
+    url: null
+  };
 }
 
 export function calculateSpoonVolume(weightMg, density) {
+  if (density == null || density <= 0) {
+    return {
+      weightGrams: null,
+      volumeMl: null,
+      tsp: null,
+      tbsp: null,
+      spoonDescription: "Density unknown — volume cannot be calculated"
+    };
+  }
+
   const weightGrams = weightMg / 1000;
   const volumeMl = weightGrams / density;
-  
-  const tsp = volumeMl / 5.0;      // 1 metric tsp = 5 mL
-  const tbsp = volumeMl / 15.0;    // 1 metric tbsp = 15 mL
+  const tsp = volumeMl / 5.0;
+  const tbsp = volumeMl / 15.0;
 
   let spoonDescription = "";
   if (tsp < 0.2) spoonDescription = "Tiny pinch (< 1/8 tsp)";

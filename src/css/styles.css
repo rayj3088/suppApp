@@ -100,3 +100,74 @@ button:hover {
 
 .card.success { border-left-color: var(--neon-green); }
 .card.error { border-left-color: var(--neon-red); }
+
+/* Unified Converter Panel */
+.converter-panel {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 1.5rem;
+  background: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.25rem;
+  border-left: 4px solid var(--neon-green);
+}
+
+.converter-header {
+  font-weight: bold;
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+  color: var(--neon-green);
+}
+
+.converter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.75rem;
+}
+
+.converter-row label {
+  width: 110px;
+  font-size: 0.85rem;
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+.converter-row input {
+  flex: 1;
+  background: #111;
+  border: 1px solid #333;
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.converter-row input[readonly] {
+  color: #60a5fa;
+  cursor: default;
+}
+
+.converter-results {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #333;
+}
+
+.converter-results strong {
+  font-size: 1.15rem;
+  color: var(--neon-green);
+}
+
+.converter-meta {
+  font-size: 0.9rem;
+  color: #bbb;
+  margin: 4px 0 8px 0;
+}
+
+.converter-source {
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: #666;
+}

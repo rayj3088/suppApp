@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LABELNERD v3.0</title>
+  <title>LABELNERD v3.1</title>
   
   <!-- Modular Stylesheet -->
   <link rel="stylesheet" href="./src/css/styles.css">
@@ -12,15 +12,36 @@
 
   <div class="header-container">
     <div id="status-orb"></div>
-    <h1>LABELNERD v3.0</h1>
+    <h1>LABELNERD v3.1</h1>
     <span id="api-counter" class="api-badge">API: 1000/1000</span>
   </div>
 
-  <textarea id="ingredient-input" placeholder="Paste supplement label ingredients here... (e.g., magnesium stearate, silicon dioxide, calcium)"></textarea>
+  <textarea id="ingredient-input" placeholder="Paste supplement label ingredients here... (e.g., magnesium stearate, silicon dioxide, calcium citrate, creatine monohydrate)"></textarea>
 
   <div>
     <button id="analyze-btn">Analyze Label Matrix</button>
     <button id="save-btn" style="background: #444; margin-left: 10px;">Save Favorites</button>
+  </div>
+
+  <!-- Unified Spoon Converter Panel (driven by analysis) -->
+  <div id="converter-panel" class="converter-panel">
+    <div class="converter-header">🥄 Spoon Volume Converter</div>
+    <div class="converter-row">
+      <label>Substance</label>
+      <input type="text" id="converter-substance" placeholder="Auto-filled from analysis..." readonly>
+    </div>
+    <div class="converter-row">
+      <label>Weight (mg)</label>
+      <input type="number" id="converter-weight" value="5000" min="1" step="100">
+    </div>
+    <div class="converter-results">
+      <div><strong id="conv-spoon">—</strong></div>
+      <div class="converter-meta">
+        <span id="conv-ml">— mL</span> · 
+        <span id="conv-tsp">— tsp</span>
+      </div>
+      <div class="converter-source" id="conv-source">Waiting for analysis…</div>
+    </div>
   </div>
 
   <div id="output-container"></div>

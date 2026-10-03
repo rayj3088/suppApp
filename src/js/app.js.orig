@@ -1,0 +1,96 @@
+import { fetchDensityFromIntelligence, calculateSpoonVolume } from './converter.js';
+
+let activeDensity = 0.86;
+
+async function updateConverterUI() {
+  const substance = document.getElementById('converter-substance')?.value || 'Creatine';
+  const weight = parseFloat(document.getElementById('converter-weight')?.value || 0);
+  if (weight <= 0) return;
+
+  const data = await fetchDensityFromIntelligence(substance);
+  activeDensity = data.density;
+
+  const res = calculateSpoonVolume(weight, activeDensity);
+  const spoonEl = document.getElementById('conv-spoon');
+  const mlEl = document.getElementById('conv-ml');
+  const tspEl = document.getElementById('conv-tsp');
+  const sourceEl = document.getElementById('conv-source');
+
+  if (spoonEl) spoonEl.textContent = res.spoonDescription;
+  if (mlEl) mlEl.textContent = `${res.volumeMl} mL`;
+  if (tspEl) tspEl.textContent = `${res.tsp} tsp (${res.tbsp} tbsp)`;
+  if (sourceEl) sourceEl.textContent = `${data.source} (${activeDensity.toFixed(2)} g/mL)`;
+}
+
+import { checkLocalDictionary } from './dictionary.js';
+import { updateUIState, renderOutputCards, renderFallbackUI, updateApiBadge } from './ui.js';
+import { getApiCount, runBrowserNativeAI, fetchFromServerProxyAPI } from './api.js';
+
+let latestIngredientMatrix = null;
+let latestSupplementName = "Scanned Supplement " + new Date().toLocaleTimeString();
+
+export async function processSupplementLabel(rawInputText) {
+  updateUIState("THINKING_ORB_ACTIVE");
+  const outputContainer = document.getElementById("output-container");
+  outputContainer.innerHTML = "";
+
+  let foundMatches = checkLocalDictionary(rawInputText);
+  latestIngredientMatrix = foundMatches;
+
+  try {
+    let decipheredText = "";
+
+    // Strategy 1: Browser-Native AI
+    const browserAI = await runBrowserNativeAI(rawInputText);
+    if (browserAI) {
+      decipheredText = browserAI;
+    } 
+    // Strategy 2: Server API Fallback
+    else {
+      decipheredText = await fetchFromServerProxyAPI(rawInputText);
+    }
+
+    renderOutputCards(foundMatches, decipheredText);
+    updateUIState("SUCCESS_ORB_ACTIVE");
+  } catch (error) {
+    console.error(error);
+    renderFallbackUI(error.message || "Connection or processing limit reached.");
+    updateUIState("ERROR_ORB_ACTIVE");
+  }
+}
+
+export function handleProcessClick() {
+  const text = document.getElementById("ingredient-input").value;
+  if (!text.trim()) return;
+  processSupplementLabel(text);
+}
+
+export function saveCurrentToFavorites() {
+  if (!latestIngredientMatrix || Object.keys(latestIngredientMatrix).length === 0) {
+    return alert("Nothing to save yet! Analyze a label first.");
+  }
+
+  const currentLog = JSON.parse(localStorage.getItem("favorites_matrix")) || [];
+  currentLog.push({
+    name: latestSupplementName,
+    data: latestIngredientMatrix,
+    date: Date.now()
+  });
+  localStorage.setItem("favorites_matrix", JSON.stringify(currentLog));
+  alert(`Saved "${latestSupplementName}" to Favorites!`);
+}
+
+// Event Listeners
+window.addEventListener("DOMContentLoaded", () => {
+  updateApiBadge(getApiCount());
+  
+  document.getElementById("analyze-btn")?.addEventListener("click", handleProcessClick);
+  document.getElementById("save-btn")?.addEventListener("click", saveCurrentToFavorites);
+
+  // Add these lines to make the converter interactive:
+  document.getElementById("converter-substance")?.addEventListener("input", updateConverterUI);
+  document.getElementById("converter-weight")?.addEventListener("input", updateConverterUI);
+
+  // Run initial calculation once on startup
+  if (typeof updateConverterUI === 'function') updateConverterUI();
+});

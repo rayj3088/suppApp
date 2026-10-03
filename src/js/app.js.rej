@@ -1,0 +1,32 @@
+***************
+*** 80,89 ****
+    alert(`Saved "${latestSupplementName}" to Favorites!`);
+  }
+  
+- // Event Listeners
+  window.addEventListener("DOMContentLoaded", () => {
+    updateApiBadge(getApiCount());
+-   
+-   document.getElementById("analyze-btn").addEventListener("click", handleProcessClick);
+-   document.getElementById("save-btn").addEventListener("click", saveCurrentToFavorites);
+  });
+--- 132,150 ----
+    alert(`Saved "${latestSupplementName}" to Favorites!`);
+  }
+  
++ // Event Listeners — single coupling point
+  window.addEventListener("DOMContentLoaded", () => {
+    updateApiBadge(getApiCount());
++ 
++   document.getElementById("analyze-btn")?.addEventListener("click", handleProcessClick);
++   document.getElementById("save-btn")?.addEventListener("click", saveCurrentToFavorites);
++ 
++   // Weight field is continuously coupled to the last resolved density
++   const weightEl = document.getElementById("converter-weight");
++   if (weightEl) {
++     weightEl.addEventListener("input", () => updateConverterUI(false));
++   }
++ 
++   // Initial converter paint (default creatine)
++   updateConverterUI(true);
+  });
