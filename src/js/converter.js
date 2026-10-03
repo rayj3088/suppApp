@@ -52,7 +52,7 @@ export async function fetchDensityFromIntelligence(compoundName) {
       const entry = VERIFIED_DENSITIES[key];
       return {
         density: entry.density,
-        source: "Verified Database",
+        source: "Typical bulk density estimate",
         url: entry.url || null
       };
     }
